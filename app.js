@@ -2,7 +2,7 @@ import { nextBox, isMastered, scoreExam, progressStats, wrongQuestionIds, toMark
 
 const STORE_KEY = 'ipas_quiz_progress';
 // 部署 Cloudflare Worker 後填入,例如 'https://ipas-quiz-sync.你的帳號.workers.dev'。留空=只用本機。
-const SYNC_URL = '';
+const SYNC_URL = 'https://ipas-quiz-sync.yazelinj303.workers.dev';
 const $ = (sel) => document.querySelector(sel);
 const view = $('#view');
 

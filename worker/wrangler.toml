@@ -7,4 +7,4 @@ compatibility_date = "2026-06-01"
 # 把指令印出的 id 貼到下面,然後 npx wrangler deploy
 [[kv_namespaces]]
 binding = "SYNC"
-id = "REPLACE_WITH_KV_ID"
+id = "a38f175fd0bf48b0be7c8d997bc1cd04"
