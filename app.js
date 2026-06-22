@@ -548,6 +548,11 @@ function settings() {
   view.innerHTML = `
     <section class="card">
       <h2>設定</h2>
+      <h3>安裝成 app</h3>
+      <p class="muted">裝起來有 app icon、可全螢幕、離線也能刷。</p>
+      <button id="set-install">安裝</button>
+      <span id="set-install-msg" class="muted"></span>
+
       <h3>學習目標</h3>
       <label>每日目標題數
         <input id="set-goal" type="number" min="1" max="611" value="${dailyGoal()}">
@@ -586,6 +591,24 @@ function settings() {
       <h3 class="danger">重設</h3>
       <button class="danger" id="reset">清除本機所有進度</button>
     </section>`;
+  const insBtn = $('#set-install'), insMsg = $('#set-install-msg');
+  if (insBtn) {
+    if (isStandalone()) { insBtn.textContent = '已安裝 ✓'; insBtn.disabled = true; }
+    else if (deferredInstall) {
+      insBtn.onclick = async () => {
+        deferredInstall.prompt();
+        const c = await deferredInstall.userChoice.catch(() => ({}));
+        if (c && c.outcome === 'accepted') { insBtn.textContent = '已安裝 ✓'; insBtn.disabled = true; dismissInstallBar(); }
+        deferredInstall = null;
+      };
+    } else {
+      insBtn.disabled = true;
+      insBtn.textContent = '由瀏覽器選單安裝';
+      insMsg.textContent = /iphone|ipad|ipod/i.test(navigator.userAgent)
+        ? '(iPhone:Safari 分享鈕 → 加入主畫面)'
+        : '(Chrome ⋮ 選單 → 安裝應用程式 / 加到主畫面)';
+    }
+  }
   $('#set-goal').onchange = (e) => { store.settings ||= {}; store.settings.dailyGoal = Math.max(1, +e.target.value || 20); save(); };
   $('#set-exam').onchange = (e) => { store.settings ||= {}; store.settings.examDate = e.target.value; save(); };
   if ($('#rem-hour')) $('#rem-hour').onchange = async (e) => {
