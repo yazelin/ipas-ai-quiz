@@ -9813,6 +9813,618 @@
       "explanation": "梯度裁剪須在 backward 算出梯度之後、optimizer.step 更新之前進行，用以限制梯度範數避免更新失控。",
       "id": "115-1-m-s3-q47",
       "chapter": "深度學習與模型工作流"
+    },
+    {
+      "level": "中級",
+      "round": "114年第二次",
+      "subject": "科目2：大數據處理分析與應用",
+      "chapter": "統計與機率基礎",
+      "topic": "偏態判讀",
+      "question": "附圖為某資料之分佈圖，此圖資料之偏態（Skewness）值較有可能為下列哪個選項？",
+      "options": [
+        "Skewness < 0",
+        "Skewness > 0",
+        "Skewness = 0",
+        "無法計算 Skewness"
+      ],
+      "answer": 0,
+      "explanation": "圖中資料眾數偏右、左側有一條長尾，屬左偏（負偏）分佈，平均值被左側長尾拉低於眾數，故 Skewness < 0。",
+      "image": "assets/114-2-m-s2-f01.png",
+      "id": "114-2-m-s2-f1"
+    },
+    {
+      "level": "中級",
+      "round": "114年第二次",
+      "subject": "科目2：大數據處理分析與應用",
+      "chapter": "大數據與機器學習",
+      "topic": "驗證法判別",
+      "question": "請參考附圖，下列虛擬程式碼（pseudocode）最可能是在描述何種驗證法？",
+      "options": [
+        "Hold-out 驗證（Hold-out Validation）",
+        "留一交叉驗證 LOOCV（Leave-One-Out Cross Validation）",
+        "K-fold 交叉驗證（K-fold Cross Validation）",
+        "拔靴法（Bootstrap）驗證"
+      ],
+      "answer": 1,
+      "explanation": "演算法對 i=1 到 N，每次只取第 i 筆當測試集、其餘 N-1 筆當訓練集並重複 N 次，正是每筆資料各當一次測試的留一交叉驗證 LOOCV。",
+      "image": "assets/114-2-m-s2-f02.png",
+      "id": "114-2-m-s2-f2"
+    },
+    {
+      "level": "中級",
+      "round": "114年第二次",
+      "subject": "科目2：大數據處理分析與應用",
+      "chapter": "大數據與機器學習",
+      "topic": "分群演算法判別",
+      "question": "請參考附圖，下列虛擬程式碼（pseudocode）最可能是在描述何種演算法？",
+      "options": [
+        "K-means 分群（K-means Clustering）",
+        "高斯混合模型分群（Gaussian Mixture Model Clustering）",
+        "階層式分群（Hierarchical Clustering）",
+        "DBSCAN 分群（Density-based Spatial Clustering of Applications with Noise Clustering）"
+      ],
+      "answer": 0,
+      "explanation": "演算法先隨機選 X 個資料點當初始中心，反覆「指派到最近中心、再以群內平均更新中心」直到收斂，這是典型的 K-means 分群流程。",
+      "image": "assets/114-2-m-s2-f03.png",
+      "id": "114-2-m-s2-f3"
+    },
+    {
+      "level": "中級",
+      "round": "114年第二次",
+      "subject": "科目2：大數據處理分析與應用",
+      "chapter": "數據工程與管理",
+      "topic": "型態浮點成因",
+      "question": "分析師在載入 vgsales.csv 資料後，檢視 Year 欄位的資料型態（如附圖），發現它是 float64，而非一般年份常用的整數。他想了解這樣的情形為什麼會發生。請問下列哪些原因可能導致這種狀況？\n原因 A：CSV 檔中 Year 欄位有缺失值(NaN)，導致 Pandas 自動將整欄轉為浮點數。\n原因 B：CSV 檔中的年份資料原本是字串(如 \"2006\")，Pandas 轉換時出錯而變成浮點數。\n原因 C：Pandas 預設會將所有數值型態讀取為 float64，不論資料是否為整數。\n原因 D：CSV 檔中的年份資料可能包含小數點(例如 2006.0)，因此被視為浮點數。",
+      "options": [
+        "原因 B、原因 C",
+        "原因 A、原因 D",
+        "原因 A、原因 B、原因 D",
+        "原因 C、原因 D"
+      ],
+      "answer": 1,
+      "explanation": "整數欄一旦含 NaN，Pandas 會升格為 float64（原因 A）；若原始值寫成 2006.0 等帶小數點形式也會被視為浮點（原因 D）。Pandas 並非把所有數值預設讀為 float64（否定 C），字串年份預設會留為 object 而非自動轉浮點（否定 B），故答案為 A、D。",
+      "image": "assets/114-2-m-s2-f05.png",
+      "id": "114-2-m-s2-f4"
+    },
+    {
+      "level": "中級",
+      "round": "114年第二次",
+      "subject": "科目2：大數據處理分析與應用",
+      "chapter": "大數據分析與可視化",
+      "topic": "describe 判讀",
+      "question": "使用銷售資料集(marketing.csv)進行迴歸分析，附圖顯示 df.head() 與 df.describe() 的結果。根據上述結果，下列何者正確？",
+      "options": [
+        "資料集個數為 199 筆，變數個數為 4 個",
+        "sales 變數的中位數是 16.827",
+        "facebook 變數的第三四分位數(Q3)是 11.94",
+        "youtube 變數的第一四分位數(Q1)是 89.25"
+      ],
+      "answer": 3,
+      "explanation": "describe 中 youtube 的 25%（Q1）為 89.25，故 D 正確。資料多數欄位 count 為 200 筆、共 4 個變數；16.827 是 sales 的平均值（mean）非中位數；11.94 是 facebook 的 Q1 而非 Q3，皆與選項描述不符。",
+      "image": "assets/114-2-m-s2-f06.png",
+      "id": "114-2-m-s2-f5"
+    },
+    {
+      "level": "中級",
+      "round": "114年第二次",
+      "subject": "科目2：大數據處理分析與應用",
+      "chapter": "數據工程與管理",
+      "topic": "缺失值計算語法",
+      "question": "參考附圖計算各變數的遺漏值(NaN)個數結果，下列哪些選項的程式碼可正確得到該結果？\n選項 A: df.isnull().sum()\n選項 B: df.isNaN().sum()\n選項 C: df.isna().sum()\n選項 D: df.isnan().sum()",
+      "options": [
+        "選項 D",
+        "選項 B、選項 C、選項 D",
+        "選項 A、選項 C",
+        "選項 A、選項 B、選項 C"
+      ],
+      "answer": 2,
+      "explanation": "Pandas 計算缺失值的正確方法是 df.isnull().sum() 與其別名 df.isna().sum()（兩者等價），故選項 A、C 正確；isNaN()、isnan() 並非 DataFrame 的方法，會報錯。",
+      "image": "assets/114-2-m-s2-f07.png",
+      "id": "114-2-m-s2-f6"
+    },
+    {
+      "level": "中級",
+      "round": "114年第二次",
+      "subject": "科目2：大數據處理分析與應用",
+      "chapter": "大數據與機器學習",
+      "topic": "迴歸語法與係數",
+      "question": "考慮資料集已經填補遺漏值，參考附圖（迴歸程式碼與 OLS 執行結果），下列何者正確？\nA：空格 1 完整語法 reg = LinearRegression().fit(y, X)\nB：空格 1 完整語法 reg = LinearRegression().fit(X, y)\nC：print(reg.coef_) 結果為包括截距項等 4 個係數值\nD：空格 2 完整語法 sm.OLS(X2, y).fit()\nE：model_sm 迴歸模型的所有迴歸係數在 α=0.05 之下具有顯著的解釋力\nF：截距項係數值為 3.5561",
+      "options": [
+        "B、C、F",
+        "B、F",
+        "A、C、D、F",
+        "B、E"
+      ],
+      "answer": 1,
+      "explanation": "sklearn 的 fit 簽名為 fit(X, y)（B 對、A 錯）；coef_ 不含截距，只有 3 個自變數係數（C 錯）；statsmodels 應為 sm.OLS(y, X2).fit() 而非 sm.OLS(X2, y)（D 錯）；OLS 表中 newspaper 的 P>|t|=0.914 不顯著，故並非所有係數都顯著（E 錯）；const 係數 3.5561 即截距（F 對），故答案為 B、F。",
+      "image": "assets/114-2-m-s2-f08.png",
+      "id": "114-2-m-s2-f7"
+    },
+    {
+      "level": "中級",
+      "round": "114年第二次",
+      "subject": "科目3：機器學習技術與應用",
+      "chapter": "ML原理與演算法",
+      "topic": "評估指標",
+      "question": "附圖程式碼所計算的是哪一類型的評估指標？",
+      "options": [
+        "MAE",
+        "MSE",
+        "RMSE",
+        "R²"
+      ],
+      "answer": 1,
+      "explanation": "程式碼回傳 sum((y_true - y_pred)**2)/len(y_true)，即誤差平方取平均，為均方誤差（MSE）；未開根號故非 RMSE。",
+      "image": "assets/114-2-m-s3-f38.png",
+      "id": "114-2-m-s3-f1"
+    },
+    {
+      "level": "中級",
+      "round": "114年第二次",
+      "subject": "科目3：機器學習技術與應用",
+      "chapter": "深度學習與模型工作流",
+      "topic": "正則化技術",
+      "question": "附圖程式碼實現的是哪一種正則化技術？",
+      "options": [
+        "L1 正則化",
+        "L2 正則化",
+        "Dropout",
+        "Batch Normalization"
+      ],
+      "answer": 2,
+      "explanation": "程式碼在訓練時以 np.random.binomial 產生遮罩隨機關閉神經元並除以保留機率 p，正是 Dropout 的反向縮放實作。",
+      "image": "assets/114-2-m-s3-f39.png",
+      "id": "114-2-m-s3-f2"
+    },
+    {
+      "level": "中級",
+      "round": "114年第二次",
+      "subject": "科目3：機器學習技術與應用",
+      "chapter": "機器學習數學基礎",
+      "topic": "向量矩陣運算",
+      "question": "依據附圖程式碼進行資料處理，下列何者正確？",
+      "options": [
+        "np.linalg.inv(A) 計算矩陣 A 的行列式",
+        "v1 * v2 結果為 array([5, 7, 9])",
+        "np.dot(v1, v2) 結果為 np.int64(32)",
+        "np.linalg.eig(A) 計算矩陣 A 的反矩陣"
+      ],
+      "answer": 2,
+      "explanation": "v1=[1,2,3]、v2=[4,5,6]，內積 np.dot(v1,v2)=1*4+2*5+3*6=32；inv 為反矩陣、eig 為特徵值分解、v1*v2 為逐元素相乘=[4,10,18]，皆錯。",
+      "image": "assets/114-2-m-s3-f40.png",
+      "id": "114-2-m-s3-f3"
+    },
+    {
+      "level": "中級",
+      "round": "114年第二次",
+      "subject": "科目3：機器學習技術與應用",
+      "chapter": "機器學習數學基礎",
+      "topic": "條件機率",
+      "question": "考慮擲出骰子並採用 Monte Carlo 方法估算條件機率，參考附圖程式碼。事件 A：擲出偶數；事件 B：擲出大於 3。請問下列何者為條件機率 P(A∣B) 的正確值？",
+      "options": [
+        "A_and_B.sum() / (A.sum() * B.sum())",
+        "A_and_B.sum() / (A.sum() + B.sum())",
+        "A_and_B.sum() / A.sum()",
+        "A_and_B.sum() / B.sum()"
+      ],
+      "answer": 3,
+      "explanation": "條件機率 P(A|B)=P(A∩B)/P(B)，分子為同時滿足 A、B 的次數，分母為 B 發生的次數，即 A_and_B.sum()/B.sum()。",
+      "image": "assets/114-2-m-s3-f41.png",
+      "id": "114-2-m-s3-f4"
+    },
+    {
+      "level": "中級",
+      "round": "114年第二次",
+      "subject": "科目3：機器學習技術與應用",
+      "chapter": "深度學習與模型工作流",
+      "topic": "遷移學習",
+      "question": "假設你要對 VGG16 進行遷移學習（transfer learning），希望凍結卷積層的參數，只訓練最後全連接層（classifier）。下列哪段程式碼寫法正確？",
+      "options": [
+        "凍結 model.parameters() 全部後重設 classifier[6]",
+        "僅凍結 model.features.parameters() 並重設 classifier[6]",
+        "凍結 model.classifier.parameters() 後重設 classifier[6]",
+        "直接設 model.requires_grad = False 並重設 classifier[6]"
+      ],
+      "answer": 1,
+      "explanation": "VGG16 卷積層位於 model.features，僅對 model.features.parameters() 設 requires_grad=False 才能凍結卷積層而保留分類器可訓練；凍全部或凍 classifier 皆不符需求，model.requires_grad 屬性寫法也無效。",
+      "image": "assets/114-2-m-s3-f45.png",
+      "id": "114-2-m-s3-f5"
+    },
+    {
+      "level": "中級",
+      "round": "114年第二次",
+      "subject": "科目3：機器學習技術與應用",
+      "chapter": "ML原理與演算法",
+      "topic": "PCA降噪",
+      "question": "研究人員嘗試使用 PCA 對含雜訊的手寫數字影像 noisy 進行降噪，但執行後影像仍含明顯雜訊。附圖程式碼分為 A~E 五行，請問哪一段（行）程式碼需要修改，才能讓 PCA 對 noisy 影像有效去噪？",
+      "options": [
+        "程式碼 A",
+        "程式碼 B",
+        "程式碼 C",
+        "程式碼 D"
+      ],
+      "answer": 1,
+      "explanation": "程式碼 B 的 pca = PCA() 未指定 n_components，保留全部主成分等於不降維、無法濾除雜訊；須設定較小的成分數（如 PCA(n_components=...)）才能達到降噪效果。",
+      "image": "assets/114-2-m-s3-f46.png",
+      "id": "114-2-m-s3-f6"
+    },
+    {
+      "level": "中級",
+      "round": "114年第二次",
+      "subject": "科目3：機器學習技術與應用",
+      "chapter": "ML原理與演算法",
+      "topic": "交叉驗證",
+      "question": "請問附圖中哪幾組程式碼能正確使用 KNN 搭配交叉驗證，對 digits 資料集進行訓練並輸出準確率？",
+      "options": [
+        "程式碼 A、程式碼 B、程式碼 C、程式碼 D",
+        "程式碼 A、程式碼 C",
+        "程式碼 A、程式碼 B",
+        "程式碼 C、程式碼 D"
+      ],
+      "answer": 1,
+      "explanation": "A 與 C 使用 scoring=\"accuracy\" 可正確評估多類別 digits；B 與 D 使用 scoring=\"f1\"，f1 預設僅適用二元分類，套用於 10 類 digits 會報錯，故正確組合為 A、C。",
+      "image": "assets/114-2-m-s3-f47.png",
+      "id": "114-2-m-s3-f7"
+    },
+    {
+      "level": "中級",
+      "round": "114年第二次",
+      "subject": "科目3：機器學習技術與應用",
+      "chapter": "深度學習與模型工作流",
+      "topic": "特徵標準化",
+      "question": "鐵達尼號 MLP 分類分析中，參考附圖程式碼（資料前 5 筆與標準化程式），下列何者正確？A：X_train -= X_train.mean(axis=0) 將每個訓練集特徵的平均值調整為 0；B：X_train /= X_train.std(axis=0) 將每個訓練集特徵的標準差調整為 0；C：X_train 處理結果會將資料壓縮到 0 和 1 之間；D：標準化結果防止梯度爆炸或消失；E：標準化是屬於特徵選擇（Feature Selection）方法；F：X_train 程式碼應修正為 X_train = X_train.std(axis=0)，X_test 程式碼應修正為 X_test = X_test.std(axis=0)。",
+      "options": [
+        "A、B、C、D",
+        "A、E",
+        "A、D",
+        "A、C、F"
+      ],
+      "answer": 2,
+      "explanation": "減平均使各特徵均值為 0（A 正確）；除以標準差使標準差為 1 而非 0（B 錯）；標準化（z-score）不會把資料壓縮到 [0,1]（C 錯，那是 Min-Max 正規化）；標準化有助穩定數值、緩解梯度爆炸/消失（D 正確）；標準化非特徵選擇（E 錯）；原程式正確不需改為 std（F 錯），故僅 A、D。",
+      "image": "assets/114-2-m-s3-f48.png",
+      "id": "114-2-m-s3-f8"
+    },
+    {
+      "level": "中級",
+      "round": "114年第二次",
+      "subject": "科目3：機器學習技術與應用",
+      "chapter": "深度學習與模型工作流",
+      "topic": "模型參數量",
+      "question": "參考附圖執行結果（MLP 模型架構與 model.summary() 輸出，輸入特徵數為 9），下列何者正確？",
+      "options": [
+        "activation=\"relu\" 其數學式為特定公式",
+        "空格 1 值為 110，空格 2 值為 100",
+        "空格 1 值為 100，空格 2 值為 110",
+        "activation=\"sigmoid\" 一般用於多類別分類預測模型"
+      ],
+      "answer": 2,
+      "explanation": "第一層 Dense(10) 輸入 9 維：參數=9*10+10=100（空格1）；第二層 Dense(10) 輸入 10 維：參數=10*10+10=110（空格2）；ReLU 並非該選項所列數學式，sigmoid 用於二元而非多類別，故空格1=100、空格2=110。",
+      "image": "assets/114-2-m-s3-f49.png",
+      "id": "114-2-m-s3-f9"
+    },
+    {
+      "level": "中級",
+      "round": "114年第二次",
+      "subject": "科目3：機器學習技術與應用",
+      "chapter": "深度學習與模型工作流",
+      "topic": "繪圖樣式",
+      "question": "參考附圖執行結果（訓練/驗證損失曲線與 matplotlib 繪圖程式），下列何者正確？A：空格 1 須填入 \"b-\"；B：空格 2 須填入 \"b--\"；C：空格 1 須填入 \"r-\"；D：空格 2 須填入 \"r--\"；E：驗證損失明顯較訓練損失減少更明顯。",
+      "options": [
+        "B、C",
+        "A、C、D",
+        "A、D",
+        "C、D、E"
+      ],
+      "answer": 2,
+      "explanation": "圖中 Training Loss 為藍色實線（b-，對應空格1=A），Validation Loss 為紅色虛線（r--，對應空格2=D）；驗證損失下降幅度反而較訓練損失小（E 錯），故正確為 A、D。",
+      "image": "assets/114-2-m-s3-f50.png",
+      "id": "114-2-m-s3-f10"
+    },
+    {
+      "level": "中級",
+      "round": "115年第一次",
+      "subject": "科目1：人工智慧技術應用規劃",
+      "chapter": "AI導入評估與規劃",
+      "topic": "導入成效評估",
+      "question": "一家電商公司已將推薦系統 AI 模型上線三個月，業務主管要求專案團隊評估導入成效。團隊根據下圖數據得出結論：「因為 AUC 高達 0.91，模型表現優異，AI 導入成效良好。」請問此評估結論存在什麼根本問題？",
+      "options": [
+        "僅依賴離線指標 AUC 判斷模型成效，忽略線上業務指標（如 CTR 與營收）的變化，可能導致錯誤結論",
+        "AUC 已達 0.91，代表模型排序能力優異，即使 CTR 略為下降，仍可視為推薦品質提升",
+        "CTR 從 3.2% 降至 3.1%，顯示模型效果變差，應立即還原（Rollback）至舊模型",
+        "平均訂單金額提升至 $1,020，代表模型已成功優化營收，因此無需考慮其他指標"
+      ],
+      "answer": 0,
+      "explanation": "AUC 屬離線排序指標，無法代表真實業務成效；表中 CTR 反而從 3.2% 微降至 3.1%，顯示只看 AUC 會忽略 CTR、營收等線上業務指標的實際變化，易導致誤判。",
+      "image": "assets/115-1-m-s1-f01.png",
+      "id": "115-1-m-s1-f1"
+    },
+    {
+      "level": "中級",
+      "round": "115年第一次",
+      "subject": "科目2：大數據處理分析與應用",
+      "chapter": "大數據與機器學習",
+      "topic": "關聯規則",
+      "question": "下圖表為電商平台某時段的交易紀錄（共 8 筆訂單），對圖表內的資料執行 Apriori 演算法，設定最低支援度為 3。請問最終保留下來的最大頻繁項目集為何？",
+      "options": [
+        "{A}",
+        "{A, D}",
+        "{A, B, E}",
+        "{B, E}"
+      ],
+      "answer": 3,
+      "explanation": "逐項計次：A出現6次、B出現4次、E出現3次、D出現3次。組合中 {B,E} 同時出現於單號1、3、5 共3次達門檻且為最大；{A,B,E} 僅單號1、4 兩次未達3，故最大頻繁項目集為 {B, E}。",
+      "image": "assets/115-1-m-s2-f01.png",
+      "id": "115-1-m-s2-f1"
+    },
+    {
+      "level": "中級",
+      "round": "115年第一次",
+      "subject": "科目2：大數據處理分析與應用",
+      "chapter": "大數據與機器學習",
+      "topic": "ROC曲線",
+      "question": "Receiver Operating Characteristic（ROC）曲線係由單一分類模型在不同決策閾值下形成，並以真陽率（True Positive Rate, TPR）為縱軸、假陽率（False Positive Rate, FPR）為橫軸。請問下圖中四條曲線，何者最不可能是 ROC 曲線？",
+      "options": [
+        "水平線 A",
+        "曲線 B",
+        "曲線 C",
+        "斜直線 D"
+      ],
+      "answer": 2,
+      "explanation": "ROC 曲線隨閾值變化必為單調不遞減（TPR 不會隨 FPR 增加而下降）。圖中曲線 C 出現先升後降的非單調折返，違反 ROC 單調性，最不可能是 ROC 曲線。",
+      "image": "assets/115-1-m-s2-f02.png",
+      "id": "115-1-m-s2-f2"
+    },
+    {
+      "level": "中級",
+      "round": "115年第一次",
+      "subject": "科目2：大數據處理分析與應用",
+      "chapter": "數據工程與管理",
+      "topic": "可變預設值",
+      "question": "在建構自動化資料清洗管線時，工程師撰寫一個用於補齊缺失欄位的 Python 函式，如下圖所示。當此函式連續處理兩筆獨立的資料（row1 與 row2）後，請問第二筆資料 row2['tags'] 的內容會為何？",
+      "options": [
+        "[\"checked\", \"tags\"]",
+        "[]",
+        "[\"checked\", \"checked\"]",
+        "拋出 KeyError 錯誤，因為字典中沒有 tags 鍵值"
+      ],
+      "answer": 2,
+      "explanation": "Python 函式的預設參數 tags=[] 只在定義時建立一次，會被多次呼叫共用。第一次 append 後變成 [\"checked\"]，第二次再 append 變成 [\"checked\", \"checked\"]，故 row2['tags'] 為 [\"checked\", \"checked\"]。",
+      "image": "assets/115-1-m-s2-f03.png",
+      "id": "115-1-m-s2-f3"
+    },
+    {
+      "level": "中級",
+      "round": "115年第一次",
+      "subject": "科目2：大數據處理分析與應用",
+      "chapter": "大數據與機器學習",
+      "topic": "演算法判讀",
+      "question": "下圖為一段分類演算法的 pseudocode，請問最可能對應下列哪一種演算法？",
+      "options": [
+        "K-近鄰（K-Nearest Neighbors, KNN）",
+        "K-means 分群（K-means Clustering）",
+        "支援向量機（Support Vector Machine, SVM）",
+        "隨機森林分類器（Random Forest Classifier）"
+      ],
+      "answer": 0,
+      "explanation": "虛擬碼計算待測點與每筆訓練樣本的距離、升序排序後取出前 K 個最近鄰，再以多數標籤作為預測結果，這正是 K-近鄰（KNN）的標準流程。",
+      "image": "assets/115-1-m-s2-f04.png",
+      "id": "115-1-m-s2-f4"
+    },
+    {
+      "level": "中級",
+      "round": "115年第一次",
+      "subject": "科目2：大數據處理分析與應用",
+      "chapter": "統計與機率基礎",
+      "topic": "偏態補值",
+      "question": "資料分析師使用 Python 檢視 daily_earnings 欄位的基本統計量，執行如下圖程式碼（Pandas 2 以上版本），輸出結果為 mean：223.411306、50%：128.552462、max：4500.000000。若團隊發現該欄位約有 5% 遺失值，且規劃先建立線性迴歸模型預測未來收入。為盡可能保留該欄位原有分布特性並降低因補值造成的偏差，下列哪一種處理方式最為合理？",
+      "options": [
+        "df['daily_earnings'].fillna(df['daily_earnings'].mean(), inplace=True)",
+        "df['daily_earnings'].fillna(df['daily_earnings'].median(), inplace=True)",
+        "df['daily_earnings'].fillna(df['daily_earnings'].max(), inplace=True)",
+        "直接刪除所有遺失資料，因數值型欄位不適合進行補值處理"
+      ],
+      "answer": 1,
+      "explanation": "平均數 223 遠大於中位數 128 且 max 高達 4500，顯示資料呈右偏並含極端值。此時平均數易被離群值拉高，以中位數補值較能保留原分布特性、降低偏差，故選中位數填補。",
+      "image": "assets/115-1-m-s2-f05.png",
+      "id": "115-1-m-s2-f5"
+    },
+    {
+      "level": "中級",
+      "round": "115年第一次",
+      "subject": "科目2：大數據處理分析與應用",
+      "chapter": "大數據與機器學習",
+      "topic": "不平衡評估",
+      "question": "平台安全部門發現僅有極少數司機（約佔總體 0.05%）會利用外掛竄改 gps_ping_rate 騙取補貼。某新進資料科學家訓練了一個二元分類模型，並指出「模型整體準確率高達 99.95%，可直接上線」。資深工程師檢視結果（如圖）後認為仍不足以支持直接上線。下列何者不是其提出質疑的合理理由？",
+      "options": [
+        "在此類極度不平衡的資料中，即使模型永遠預測所有司機皆為正常，整體準確率仍可能高達 99.95%",
+        "報告中未呈現召回率（Recall），因此模型可能無法有效辨識真正的外掛司機",
+        "異常偵測問題不可使用分類模型處理，僅能使用分群或離群值方法",
+        "對於少數類比例極低的問題，若僅觀察 Accuracy，可能忽略模型對異常樣本的實際偵測能力"
+      ],
+      "answer": 2,
+      "explanation": "異常偵測在實務上完全可以用監督式分類模型處理，並非只能用分群或離群值方法，此敘述不正確，因此不是合理的質疑理由。其餘三項都正確點出極度不平衡資料中 Accuracy 失真的問題。",
+      "image": "assets/115-1-m-s2-f06.png",
+      "id": "115-1-m-s2-f6"
+    },
+    {
+      "level": "中級",
+      "round": "115年第一次",
+      "subject": "科目2：大數據處理分析與應用",
+      "chapter": "大數據與機器學習",
+      "topic": "建模流程",
+      "question": "團隊已完成資料前處理（含遺漏值處理與特徵標準化 X_norm），並準備建立分類模型。資料流程為：1. 將資料區分為訓練集與測試集；2. 建立羅吉斯迴歸模型；3. 使用訓練資料進行擬合（fit）。請問下圖哪一組 Pandas / Scikit-learn 程式碼流程最為正確？",
+      "options": [
+        "(A) train_test_split(X_norm, y, train_size=0.2 ...) + solver=\"liblinear\"",
+        "(B) train_test_split(X_norm, y, train_size=0.2 ...) + solver=\"lbfgs\"",
+        "(C) train_test_split(y, X_norm, train_size=0.2 ...) + solver=\"liblinear\"",
+        "(D) train_test_split(y, X_norm, train_size=0.2 ...) + solver=\"lbfgs\""
+      ],
+      "answer": 1,
+      "explanation": "train_test_split 的特徵與標籤順序必須為 (X, y)，選項 C、D 將 y 放在前面、X_norm 在後屬參數順序錯誤而排除。A 與 B 順序正確，但 liblinear 對多類別需 OvR 較不適合此處標準作法，採用預設且支援多類別的 lbfgs 求解器較正確，故選 B。",
+      "image": "assets/115-1-m-s2-f07.png",
+      "id": "115-1-m-s2-f7"
+    },
+    {
+      "level": "中級",
+      "round": "115年第一次",
+      "subject": "科目2：大數據處理分析與應用",
+      "chapter": "大數據與機器學習",
+      "topic": "F1與混淆矩陣",
+      "question": "參考下圖程式碼與輸出，下列描述何者正確？",
+      "options": [
+        "cm 表示混淆矩陣，橫列表測試集的預測值",
+        "混淆矩陣對角線數值皆大於非對角線數值表示模型過度擬合",
+        "f1_score 參數 average=\"weighted\" 表示計算平均 f1_score",
+        "f1_score 計算時採用各類別精確率（Precision）與召回率（Recall）的調和平均，並加權考量類別不平衡性"
+      ],
+      "answer": 3,
+      "explanation": "F1-score 為 Precision 與 Recall 的調和平均；average=\"weighted\" 會依各類別樣本數（support）加權平均，考量類別不平衡。混淆矩陣 confusion_matrix(y_test, y_pred) 的橫列是真實值而非預測值，對角線大也不代表過擬合，故僅 D 正確。",
+      "image": "assets/115-1-m-s2-f08.png",
+      "id": "115-1-m-s2-f8"
+    },
+    {
+      "level": "中級",
+      "round": "115年第一次",
+      "subject": "科目3：機器學習技術與應用",
+      "chapter": "深度學習與模型工作流",
+      "topic": "MLP多分類",
+      "question": "分析師準備建立一個能將手寫數字圖片（28x28 像素展平為 784 維度）分為 0~9 共 10 個類別的多層感知機（MLP），且標籤已轉為 One-Hot 編碼（One-Hot Encoding）。為符合 10 個類別的單標籤分類需求，下圖中的程式碼中(A)與(B)的函數應填入何者？",
+      "options": [
+        "(A) sigmoid，(B) mean_squared_error",
+        "(A) softmax，(B) categorical_crossentropy",
+        "(A) relu，(B) binary_crossentropy",
+        "(A) tanh，(B) sparse_categorical_crossentropy"
+      ],
+      "answer": 1,
+      "explanation": "多類別單標籤分類的輸出層應用 softmax 產生機率分布；標籤已是 One-Hot 編碼時，搭配的損失函數為 categorical_crossentropy。",
+      "image": "assets/115-1-m-s3-f01.png",
+      "id": "115-1-m-s3-f1"
+    },
+    {
+      "level": "中級",
+      "round": "115年第一次",
+      "subject": "科目3：機器學習技術與應用",
+      "chapter": "深度學習與模型工作流",
+      "topic": "資料增強誤用",
+      "question": "工程師使用 PyTorch 建立 OCR 訓練 pipeline，並對手寫字母資料集套用下圖程式進行資料增強（Transform）。模型在訓練過程中顯示驗證損失（Validation Loss）持續下降，但實際部署後，系統在辨識「b/d/p/q」類字母錯誤率異常偏高。下列何者為最可能的根本原因？",
+      "options": [
+        "RandomRotation(15)角度過大導致特徵變形，應降至 5 度以內",
+        "RandomHorizontalFlip 破壞字母方向語義，使模型以 50%機率學到鏡像錯誤標籤",
+        "ColorJitter 改變筆畫灰階，導致邊緣偵測特徵失真",
+        "ToTensor( )應放在所有幾何變換之前才能保持座標對應正確"
+      ],
+      "answer": 1,
+      "explanation": "b/d、p/q 互為水平鏡像，RandomHorizontalFlip 會破壞字母的方向語義，使模型學到鏡像後的錯誤標籤，導致這類字母辨識錯誤率偏高。",
+      "image": "assets/115-1-m-s3-f02.png",
+      "id": "115-1-m-s3-f2"
+    },
+    {
+      "level": "中級",
+      "round": "115年第一次",
+      "subject": "科目3：機器學習技術與應用",
+      "chapter": "深度學習與模型工作流",
+      "topic": "遷移學習策略",
+      "question": "下圖為使用 ResNet 進行遷移學習（Transfer Learning）的 Python 程式片段。觀察程式中行(A)將所有既有權重的梯度計算關閉（param.requires_grad = False），這在遷移學習中屬於哪一種標準策略？",
+      "options": [
+        "全面微調（Full Fine-Tuning）",
+        "零樣本學習（Zero-shot Learning）",
+        "特徵萃取（Feature Extraction）",
+        "知識蒸餾（Knowledge Distillation）"
+      ],
+      "answer": 2,
+      "explanation": "凍結預訓練模型所有權重（requires_grad=False），只訓練新接上的分類層，是典型的特徵萃取（Feature Extraction）策略。",
+      "image": "assets/115-1-m-s3-f03.png",
+      "id": "115-1-m-s3-f3"
+    },
+    {
+      "level": "中級",
+      "round": "115年第一次",
+      "subject": "科目3：機器學習技術與應用",
+      "chapter": "ML原理與演算法",
+      "topic": "資料洩漏",
+      "question": "研究人員撰寫的程式中（下圖），先用整體資料進行 LDA（Linear Discriminant Analysis）降維，接著再用 KNN（K-Nearest Neighbors）進行分類，並用交叉驗證來評估準確率。請問下列敘述何者正確？",
+      "options": [
+        "此寫法完全正確，因為先以整體資料進行 LDA 降維，再以交叉驗證測試 KNN，是標準流程",
+        "此寫法存在資料洩漏（Data Leakage）問題，應將 LDA 納入交叉驗證流程中一併進行",
+        "雖然流程不夠嚴謹，但結果仍然能夠代表模型真實的泛化能力",
+        "如果只想驗證 KNN 的分類效果，可以直接跳過 LDA 步驟，以簡化流程"
+      ],
+      "answer": 1,
+      "explanation": "在交叉驗證之前就用整體資料（含測試折）進行 LDA fit，測試集資訊洩漏進降維過程，造成資料洩漏；正確做法是把 LDA 放進交叉驗證的 pipeline 中，每折各自 fit。",
+      "image": "assets/115-1-m-s3-f04.png",
+      "id": "115-1-m-s3-f4"
+    },
+    {
+      "level": "中級",
+      "round": "115年第一次",
+      "subject": "科目3：機器學習技術與應用",
+      "chapter": "ML原理與演算法",
+      "topic": "分層交叉驗證",
+      "question": "研究人員在程式（下圖上方）中使用 cross_val_score 進行交叉驗證，但目前尚未設定 cv 參數。他們希望確保在每次資料分割時，訓練集與測試集的類別比例與原始資料一致，以免影響模型的準確率估計。下方有四段候選程式碼（程式碼 A~D）。請問為了確保在交叉驗證時每個分割中的類別比例與原始資料一致，哪幾段程式碼插入在原始程式中[#填入程式碼]的部分比較合適？",
+      "options": [
+        "程式碼 B、程式碼 C、程式碼 D",
+        "程式碼 A、程式碼 C",
+        "程式碼 A、程式碼 B、程式碼 D",
+        "程式碼 C、程式碼 D"
+      ],
+      "answer": 0,
+      "explanation": "要維持每折類別比例與原始資料一致需用「分層」切分：程式碼 B（StratifiedKFold）與程式碼 D（RepeatedStratifiedKFold）皆為分層；cv=5（程式碼 C）對分類器也會自動採用分層 KFold，故 B、C、D 皆合適；程式碼 A 的 KFold 不分層，不符需求。",
+      "image": "assets/115-1-m-s3-f05.png",
+      "id": "115-1-m-s3-f5"
+    },
+    {
+      "level": "中級",
+      "round": "115年第一次",
+      "subject": "科目3：機器學習技術與應用",
+      "chapter": "深度學習與模型工作流",
+      "topic": "CIFAR前處理",
+      "question": "使用 CIFAR-10 資料集建立卷積神經網路（CNN）進行彩色影像分類。每張影像解析度為 32×32 像素、具紅綠藍三通道；訓練集 50000 張、測試集 10000 張。參考下圖資料處理（x_train, x_test = x_train/255.0, x_test/255.0；y_train、y_test = to_categorical(..., 10)），下列哪一項描述組合正確？\n描述 A：x_train, x_test 將影像範圍壓縮到 0~31 範圍\n描述 B：可以增加模型的泛化能力\n描述 C：x_train, x_test 資料轉換結果相當於 z-score 標準化\n描述 D：資料轉換目的是避免梯度爆炸或梯度消失\n描述 E：y_train 將 label 轉換為獨熱編碼（One-hot Encoding）\n描述 F：y_train 適合輸出層使用 softmax 函數",
+      "options": [
+        "描述 A、描述 C、描述 F",
+        "描述 B、描述 D、描述 E、描述 F",
+        "描述 B、描述 C、描述 E、描述 F",
+        "描述 A、描述 B、描述 D、描述 E、描述 F"
+      ],
+      "answer": 1,
+      "explanation": "除以 255 是把像素縮放到 0~1（非 0~31，也非 z-score），有助穩定訓練、避免梯度爆炸/消失並提升泛化（B、D）；to_categorical 將標籤轉為 One-hot（E），對應輸出層使用 softmax（F）。故正解為 B、D、E、F。",
+      "image": "assets/115-1-m-s3-f06.png",
+      "id": "115-1-m-s3-f6"
+    },
+    {
+      "level": "中級",
+      "round": "115年第一次",
+      "subject": "科目3：機器學習技術與應用",
+      "chapter": "深度學習與模型工作流",
+      "topic": "CNN架構",
+      "question": "參考下圖建立模型結果（CNN 模型結構），下列哪一項描述組合正確？\n描述 A：區塊 1 layers.Input(shape=(32, 32, 3)) 主要目的是對資料樣本標準化\n描述 B：區塊 1 layers.Conv2D(32, kernel_size=(3,3), padding=\"same\", activation=\"relu\")，考慮輸入為(32,32,3)，則輸出 shape 為(32,32,3)\n描述 C：區塊 1 layers.BatchNormalization()放在 Conv2 之後可以減少梯度消失或爆炸\n描述 D：區塊 1 layers.Dropout(0.25)有隨機將 25%神經元輸出設定為 1\n描述 E：區塊 3 layers.Dropout(0.25)可以減少過度擬合（Overfitting）\n描述 F：區塊 4 Flatten 層的作用是將 3D 特徵圖展開為平成 1D 向量",
+      "options": [
+        "描述 A、描述 C",
+        "描述 C、描述 E、描述 F",
+        "描述 A、描述 D、描述 E",
+        "描述 D、描述 E、描述 F"
+      ],
+      "answer": 1,
+      "explanation": "Input 層只定義輸入形狀並非標準化（A 錯）；padding=\"same\" 且 32 個 filter 時輸出通道為 32 而非 3（B 錯）；Dropout 是隨機歸零而非設為 1（D 錯）。正確者為 C（BatchNorm 穩定梯度）、E（Dropout 減少過擬合）、F（Flatten 展平為 1D）。",
+      "image": "assets/115-1-m-s3-f07.png",
+      "id": "115-1-m-s3-f7"
+    },
+    {
+      "level": "中級",
+      "round": "115年第一次",
+      "subject": "科目3：機器學習技術與應用",
+      "chapter": "深度學習與模型工作流",
+      "topic": "過擬合判讀",
+      "question": "參考下圖繪圖結果（Training and Validation Accuracy 曲線），當 Epochs=6 時，訓練曲線值(0.81)明顯大於驗證曲線值(0.72)，下列何者為最可能的原因？",
+      "options": [
+        "學習率（Learning Rate）太低",
+        "批次大小（Batch Size）設定太大",
+        "模型低度擬合（Underfitting）",
+        "模型過擬合（Overfitting）"
+      ],
+      "answer": 3,
+      "explanation": "訓練準確率明顯高於驗證準確率，代表模型在訓練資料上表現好但泛化能力差，是典型的過擬合（Overfitting）現象。",
+      "image": "assets/115-1-m-s3-f08.png",
+      "id": "115-1-m-s3-f8"
     }
   ]
 }
