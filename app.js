@@ -7,6 +7,7 @@ const $ = (sel) => document.querySelector(sel);
 const view = $('#view');
 
 let DATA = { meta: {}, questions: [] };
+let CONCEPTS = [];
 let store = load();
 let pushTimer = null;
 
@@ -40,12 +41,18 @@ function daysUntilExam() {
   const diff = Math.ceil((new Date(e + 'T00:00:00') - new Date(today() + 'T00:00:00')) / 86400000);
   return diff;
 }
-// 每答一題呼叫:累加今日題數,達標當下更新打卡
-function bumpDaily() {
+// 每答一題呼叫:累加今日題數、記每日歷史、達標當下更新打卡
+function bumpDaily(correct) {
   const t = today();
   store.settings ||= { dailyGoal: 20, examDate: '' };
   if (!store.daily || store.daily.date !== t) store.daily = { date: t, count: 0 };
   store.daily.count++;
+  // 每日歷史(答題數/答對數),保留最近 30 天
+  store.history ||= {};
+  const h = (store.history[t] ||= { a: 0, c: 0 });
+  h.a++; if (correct) h.c++;
+  const days = Object.keys(store.history).sort();
+  if (days.length > 30) delete store.history[days[0]];
   store.streak ||= { count: 0, lastDate: '' };
   if (store.daily.count === dailyGoal() && store.streak.lastDate !== t) {
     store.streak = { count: (store.streak.lastDate === yesterday() ? store.streak.count : 0) + 1, lastDate: t };
@@ -109,6 +116,31 @@ function guideLine(q) {
   const link = url ? ` <a href="${esc(url)}" target="_blank" rel="noopener">開啟學習指引 ↗</a>` : '';
   return `<p class="guide">教材對應:${esc(q.subject)} ${ch}${link}</p>`;
 }
+// 回報這題(開 GitHub issue,帶好題目 id)
+function reportLink(q) {
+  const title = encodeURIComponent(`[題目回報] ${q.id}`);
+  const body = encodeURIComponent(`題目 ID:${q.id}\n科目:${q.subject}\n\n我覺得這題有問題(請描述,例如答案/選項/解析有誤):\n`);
+  return `<p class="report-line"><a href="https://github.com/yazelin/ipas-ai-quiz/issues/new?labels=question-report&title=${title}&body=${body}" target="_blank" rel="noopener">這題有誤?回報給作者</a></p>`;
+}
+// 今日挑戰:用日期當種子,固定挑 3 題(每天不同、當天穩定)
+function dailyChallenge() {
+  const qs = DATA.questions; if (!qs.length) return [];
+  let seed = 0; for (const ch of today()) seed = (seed * 31 + ch.charCodeAt(0)) >>> 0;
+  const picks = [];
+  for (let n = 0; n < 3 && n < qs.length; n++) {
+    seed = (seed * 1103515245 + 12345) >>> 0;
+    let i = seed % qs.length;
+    while (picks.includes(i)) i = (i + 1) % qs.length;
+    picks.push(i);
+  }
+  return picks.map((i) => qs[i]);
+}
+// 今日觀念卡:依日期輪播一張
+function todayConcept() {
+  if (!CONCEPTS.length) return null;
+  const dayNum = Math.floor(new Date(today() + 'T00:00:00').getTime() / 86400000);
+  return CONCEPTS[((dayNum % CONCEPTS.length) + CONCEPTS.length) % CONCEPTS.length];
+}
 function shuffle(arr) {
   const a = arr.slice();
   for (let i = a.length - 1; i > 0; i--) {
@@ -160,7 +192,21 @@ function home() {
       </div>
       <button id="share">分享進度</button>
     </section>`;
-  view.innerHTML = `${dailyStrip}
+  const chDone = store.challengeDone === today();
+  const challengeCard = `
+    <section class="card">
+      <div class="row"><h3 style="margin:0">今日挑戰 ${chDone ? '✓ 已完成' : '3 題'}</h3>
+        <button class="primary" id="challenge" style="margin:0;padding:8px 14px">${chDone ? '再做一次' : '開始'}</button></div>
+      <p class="muted" style="margin:6px 0 0">每天 3 題,養成每日刷題的習慣。</p>
+    </section>`;
+  const cc = todayConcept();
+  const conceptCard = cc ? `
+    <section class="card concept-card">
+      <div class="ck">今日 AI 觀念${cc.chapter ? ' · ' + esc(cc.chapter) : ''}</div>
+      <h3>${esc(cc.title)}</h3>
+      <p>${esc(cc.body)}</p>
+    </section>` : '';
+  view.innerHTML = `${dailyStrip}${challengeCard}${conceptCard}
     <section class="card">
       <h2>練習模式</h2>
       <p class="muted">即時看答案與解析。勾選要練的範圍,預設全選。</p>
@@ -213,6 +259,7 @@ function home() {
     if (count) pool = pool.slice(0, count);
     runPractice(pool);
   };
+  $('#challenge').onclick = () => { store.challengeDone = today(); save(); runPractice(dailyChallenge()); };
   $('#share').onclick = async () => {
     const txt = `我在 iPAS AI 應用規劃師模擬考刷題:連續打卡 ${strk} 天、今日 ${dc}/${g} 題。一起來練歷屆考古題!`;
     const url = location.origin + location.pathname;
@@ -252,7 +299,7 @@ function runPractice(pool, opts = {}) {
     if (correct) p.correct++; else p.wrong++;
     p.box = nextBox(p.box, correct);
     logRecent(correct);
-    bumpDaily();
+    bumpDaily(correct);
     save();
     view.querySelectorAll('.opt').forEach((b, idx) => {
       b.disabled = true;
@@ -263,6 +310,7 @@ function runPractice(pool, opts = {}) {
       <p class="${correct ? 'ok' : 'bad'}">${correct ? '答對' : '答錯'}（正解：${esc(q.options[q.answer])}）</p>
       ${q.explanation ? `<p class="exp">${esc(q.explanation)}</p>` : ''}
       ${guideLine(q)}
+      ${reportLink(q)}
       <label class="note">筆記<textarea id="note" rows="2" placeholder="寫下你的理解或記憶點…">${esc(p.note || '')}</textarea></label>
       <button class="primary" id="next">${i + 1 < pool.length ? '下一題' : '完成'}</button>`;
     $('#note').oninput = (e) => { p.note = e.target.value; save(); };
@@ -332,7 +380,7 @@ function runMock(pool, mins) {
       if (correct) p.correct++; else p.wrong++;
       p.box = nextBox(p.box, correct);
       logRecent(correct);
-      bumpDaily();
+      bumpDaily(correct);
     });
     save();
     const r = scoreExam(pool, answers);
@@ -380,6 +428,25 @@ function stats() {
   }
   const chRows = [...byCh.values()].map((x) =>
     `<tr><td>${esc(x.key)}</td><td>${x.attempts ? Math.round((x.correct / x.attempts) * 1000) / 10 + '％' : '—'}</td><td>${x.mastered}/${x.total}</td></tr>`).join('');
+  // 成就徽章
+  const strk = liveStreak();
+  const badges = [
+    { on: s.practiced >= 50, t: '練習 50 題' },
+    { on: s.practiced >= 200, t: '練習 200 題' },
+    { on: s.practiced >= s.total, t: '全部練過' },
+    { on: strk >= 3, t: '連續 3 天' },
+    { on: strk >= 7, t: '連續 7 天' },
+    { on: strk >= 30, t: '連續 30 天' },
+    { on: recAcc != null && recAcc >= 80, t: '近期 80% 命中' },
+    { on: [...byCh.values()].some((c) => c.total > 0 && c.mastered === c.total), t: '某範圍全掌握' },
+  ];
+  const badgeHtml = badges.map((b) => `<span class="badge ${b.on ? '' : 'lock'}">${b.on ? '✓ ' : ''}${b.t}</span>`).join('');
+  // 最近 14 天題數趨勢
+  const days14 = [];
+  for (let i = 13; i >= 0; i--) { const d = new Date(today() + 'T00:00:00'); d.setDate(d.getDate() - i); days14.push(ymd(d)); }
+  const hist = store.history || {};
+  const maxA = Math.max(1, ...days14.map((d) => (hist[d] && hist[d].a) || 0));
+  const bars = days14.map((d) => `<div class="bar" style="height:${Math.round((((hist[d] && hist[d].a) || 0) / maxA) * 100)}%" title="${d}:${(hist[d] && hist[d].a) || 0} 題"></div>`).join('');
   const cover = s.total ? Math.round((s.practiced / s.total) * 1000) / 10 : 0;
   const rec = store.recent || [];
   const recAcc = rec.length ? Math.round((rec.reduce((a, b) => a + b, 0) / rec.length) * 1000) / 10 : null;
@@ -393,6 +460,11 @@ function stats() {
         <div><b>${s.mastered}</b><span>已掌握</span></div>
       </div>
       <p class="muted" style="font-size:13px">「掌握」= 同一題連續答對 2 次。用「智慧複習」會優先讓你重做沒掌握與答錯的題,掌握數才會往上跑。</p>
+      <h3>成就</h3>
+      <div class="badges">${badgeHtml}</div>
+      <h3>最近 14 天題數</h3>
+      <div class="trend">${bars}</div>
+      <div class="trend-lab"><span>${days14[0].slice(5)}</span><span>今天</span></div>
       <h3>各範圍弱點</h3>
       <table>
         <tr><th>範圍</th><th>正確率</th><th>掌握</th></tr>
@@ -482,6 +554,7 @@ async function boot() {
     view.innerHTML = `<section class="card"><p class="bad">載入 questions.json 失敗。請用本機伺服器開啟(例如 <code>python3 -m http.server</code>)。</p></section>`;
     return;
   }
+  try { CONCEPTS = ((await (await fetch('concepts.json')).json()).cards) || []; } catch { CONCEPTS = []; }
   if (DATA.meta?.title) $('#title').textContent = DATA.meta.title;
   if (DATA.meta?.note) { const n = $('#banner'); n.textContent = DATA.meta.note; n.hidden = false; }
   localStorage.setItem(STORE_KEY, JSON.stringify(store)); // 落地可能新生成的 syncCode(不動 updatedAt)
