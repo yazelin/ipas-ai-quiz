@@ -33,7 +33,7 @@ function save() {
 function schedulePush() {
   if (!SYNC_URL) return;
   clearTimeout(pushTimer);
-  pushTimer = setTimeout(pushSync, 30000); // ponytail: debounce 30s,避免每答一題寫一次 KV
+  pushTimer = setTimeout(pushSync, 5000); // ponytail: debounce 5s,夠快又不會每題寫一次 KV
 }
 async function pushSync() {
   clearTimeout(pushTimer); pushTimer = null;
@@ -356,12 +356,13 @@ function stats() {
 
 function settings() {
   setNav('settings');
+  if (SYNC_URL) pushSync(); // 打開設定頁就把最新進度上傳,確保拿碼去別台時雲端已是最新
   view.innerHTML = `
     <section class="card">
       <h2>設定</h2>
       <h3>同步碼</h3>
       <p class="muted">${SYNC_URL
-        ? '平常背景自動同步,不用管它。換新裝置時,在新裝置輸入這組碼一次即可接上進度。'
+        ? '平常背景自動同步(每隔幾秒、切走 app 時、打開本頁時都會上傳)。換新裝置時:先在舊裝置打開這頁(會上傳),再到新裝置輸入這組碼。'
         : '雲端同步尚未啟用(需在 app.js 填入 Worker 網址)。目前可用下方「匯出/匯入」轉移。'}</p>
       <p class="code" id="code">${esc(store.syncCode)}</p>
       <label>在新裝置輸入既有同步碼
