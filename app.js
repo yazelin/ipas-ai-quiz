@@ -68,6 +68,14 @@ function makeCode() {
 const subjects = () => [...new Set(DATA.questions.map((q) => q.subject))];
 const papers = () => [...new Set(DATA.questions.map((q) => `${q.level}｜${q.round}｜${q.subject}`))];
 const esc = (s) => String(s).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+// 教材對應:指到該題所屬科目的學習指引章節 + 開啟官方 PDF
+function guideLine(q) {
+  const url = DATA.meta && DATA.meta.guides && DATA.meta.guides[q.subject];
+  if (!url && !q.chapter) return '';
+  const ch = q.chapter ? `—『${esc(q.chapter)}』章` : '';
+  const link = url ? ` <a href="${esc(url)}" target="_blank" rel="noopener">開啟學習指引 ↗</a>` : '';
+  return `<p class="guide">教材對應:${esc(q.subject)} ${ch}${link}</p>`;
+}
 function shuffle(arr) {
   const a = arr.slice();
   for (let i = a.length - 1; i > 0; i--) {
@@ -189,6 +197,7 @@ function runPractice(pool, opts = {}) {
     $('#fb').innerHTML = `
       <p class="${correct ? 'ok' : 'bad'}">${correct ? '答對' : '答錯'}（正解：${esc(q.options[q.answer])}）</p>
       ${q.explanation ? `<p class="exp">${esc(q.explanation)}</p>` : ''}
+      ${guideLine(q)}
       <label class="note">筆記<textarea id="note" rows="2" placeholder="寫下你的理解或記憶點…">${esc(p.note || '')}</textarea></label>
       <button class="primary" id="next">${i + 1 < pool.length ? '下一題' : '完成'}</button>`;
     $('#note').oninput = (e) => { p.note = e.target.value; save(); };

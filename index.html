@@ -3,8 +3,33 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<title>iPAS AI 應用規劃師 模擬考練習 | 611 題歷屆考古題</title>
+<meta name="description" content="iPAS AI 應用規劃師(初級・中級)線上模擬考。611 題歷屆公告試題,含練習/計時模擬考/錯題本(間隔重複)/弱點統計/筆記,免費、免登入、可離線。">
+<link rel="canonical" href="https://yazelin.github.io/ipas-ai-quiz/">
+<meta name="theme-color" content="#2563eb">
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
-<title>iPAS AI 應用規劃師 模擬考練習</title>
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="iPAS 模考">
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="iPAS AI 應用規劃師 模擬考練習">
+<meta property="og:title" content="iPAS AI 應用規劃師 模擬考練習">
+<meta property="og:description" content="611 題歷屆考古題,練習/計時模擬考/錯題本/弱點統計。免費、免登入、可離線、可裝到手機。">
+<meta property="og:url" content="https://yazelin.github.io/ipas-ai-quiz/">
+<meta property="og:image" content="https://yazelin.github.io/ipas-ai-quiz/og.png">
+<meta property="og:image:secure_url" content="https://yazelin.github.io/ipas-ai-quiz/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="iPAS AI 應用規劃師 模擬考練習">
+<meta name="twitter:description" content="611 題歷屆考古題,免費線上刷題。">
+<meta name="twitter:image" content="https://yazelin.github.io/ipas-ai-quiz/og.png">
 <style>
   :root { --c-bg:#f6f7f9; --c-card:#fff; --c-ink:#1c2330; --c-muted:#6b7280; --c-line:#e5e7eb;
           --c-accent:#2563eb; --c-ok:#16a34a; --c-bad:#dc2626; }
@@ -53,6 +78,8 @@
   .range-item span { flex:1; font-size:14px; }
   .range-item b { color:var(--c-accent); font-variant-numeric:tabular-nums; }
   .qfig { max-width:100%; border:1px solid var(--c-line); border-radius:8px; margin:10px 0; display:block; }
+  .guide { font-size:13px; color:var(--c-muted); background:#f1f5f9; border-radius:8px; padding:8px 10px; margin:8px 0; }
+  .guide a { color:var(--c-accent); white-space:nowrap; }
   .code { font-family:ui-monospace,monospace; font-size:20px; background:#f8fafc; padding:10px; border-radius:8px; text-align:center; letter-spacing:1px; }
   h3.danger, button.danger { color:var(--c-bad); }
   button.danger { border:1px solid var(--c-bad)!important; background:#fff!important; }
@@ -72,5 +99,6 @@
   </header>
   <main id="view"></main>
   <script type="module" src="app.js"></script>
+  <script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});</script>
 </body>
 </html>
