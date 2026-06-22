@@ -72,6 +72,19 @@ iPAS 官方公告試題 PDF 直連網址形如
 - `answer` 是正解選項的索引(從 0 起算)。
 - 模擬考的「試卷」由 `level｜round｜subject` 自動分組,不必另外維護試卷清單。
 
+## 想擴充?(給貢獻者 / AI 代理)
+
+完整的修改 SOP 在 **[AGENTS.md](AGENTS.md)**(資料 schema、加題/加梯次/加觀念卡、改學習邏輯、自架同步/推播、驗證與禁區)。Claude Code 會透過 `CLAUDE.md` 自動讀到。
+
+加題目最省的方式是用內建 CLI(自動驗證 + 配 id + 去重),別手改大 JSON:
+
+```bash
+node tools/add-questions.mjs new.json --dry-run   # 試跑
+node tools/add-questions.mjs new.json             # 正式加入
+```
+
+Claude Code 使用者也可直接用 repo 內的 `/add-questions` skill。
+
 ## 授權與題庫版權
 
 - 程式碼:MIT(見 `LICENSE`)。

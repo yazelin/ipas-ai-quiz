@@ -1,4 +1,4 @@
-import { nextBox, isMastered, scoreExam, progressStats, wrongQuestionIds, toMarkdown, reviewPriority } from './core.js';
+import { nextBox, isMastered, scoreExam, progressStats, wrongQuestionIds, toMarkdown, reviewPriority, MASTER_BOX } from './core.js';
 
 const STORE_KEY = 'ipas_quiz_progress';
 // 部署 Cloudflare Worker 後填入,例如 'https://ipas-quiz-sync.你的帳號.workers.dev'。留空=只用本機。
@@ -443,13 +443,12 @@ function wrongbook() {
   view.innerHTML = `
     <section class="card">
       <h2>錯題本</h2>
-      <p class="muted">目前錯題 ${ids.length} 題（答對 ${require_master()} 次升一格,到第 5 格算掌握,就會移出）。</p>
+      <p class="muted">答錯過、還沒掌握的題會留在這。同一題之後「連續答對 ${MASTER_BOX - 1} 次」就算掌握、自動移出。</p>
       ${ids.length ? `<button class="primary" id="drill">只練這些錯題</button>` : '<p>目前沒有錯題,繼續加油。</p>'}
-      <ul class="wrong">${list.map((q) => `<li>${esc(q.question)} <span class="muted">（${esc(q.subject)}・第 ${qp(q.id).box} 格）</span></li>`).join('')}</ul>
+      <ul class="wrong">${list.map((q) => `<li>${esc(q.question)} <span class="muted">（${esc(q.subject)}・再連對 ${Math.max(1, MASTER_BOX - (qp(q.id).box || 1))} 次就掌握）</span></li>`).join('')}</ul>
     </section>`;
   if (ids.length) $('#drill').onclick = () => runPractice(shuffle(list));
 }
-function require_master() { return 1; } // ponytail: 文案用,Leitner 升格規則在 core.nextBox
 
 function stats() {
   setNav('stats');
