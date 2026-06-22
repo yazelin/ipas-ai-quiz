@@ -3,6 +3,7 @@ import { nextBox, isMastered, scoreExam, progressStats, wrongQuestionIds, toMark
 const STORE_KEY = 'ipas_quiz_progress';
 // 部署 Cloudflare Worker 後填入,例如 'https://ipas-quiz-sync.你的帳號.workers.dev'。留空=只用本機。
 const SYNC_URL = 'https://ipas-quiz-sync.yazelinj303.workers.dev';
+const VAPID_PUBLIC = 'BNn4Lwq818aHx8cb0LrcQ6IpRgHb9B3P_BOqusct-uFyJPQ4hlDrIOirliHoNdbbg5tg8zWfzBg5SZ0yBhRq7zA';
 const $ = (sel) => document.querySelector(sel);
 const view = $('#view');
 
@@ -23,6 +24,43 @@ function load() {
 function logRecent(correct) {
   (store.recent ||= []).push(correct ? 1 : 0);
   if (store.recent.length > 50) store.recent = store.recent.slice(-50);
+}
+
+// ---- 推播提醒(Web Push)----
+const pushSupported = () => 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+function urlB64ToBytes(s) {
+  const pad = '='.repeat((4 - (s.length % 4)) % 4);
+  const raw = atob((s + pad).replace(/-/g, '+').replace(/_/g, '/'));
+  return Uint8Array.from([...raw].map((c) => c.charCodeAt(0)));
+}
+async function pushIsOn() {
+  if (!pushSupported() || !SYNC_URL) return false;
+  const reg = await navigator.serviceWorker.ready;
+  return !!(await reg.pushManager.getSubscription());
+}
+async function enablePush(localHour) {
+  if (Notification.permission !== 'granted') {
+    const perm = await Notification.requestPermission();
+    if (perm !== 'granted') return { ok: false, reason: '未允許通知權限' };
+  }
+  const reg = await navigator.serviceWorker.ready;
+  const sub = await reg.pushManager.getSubscription()
+    || await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlB64ToBytes(VAPID_PUBLIC) });
+  const offsetMin = new Date().getTimezoneOffset();
+  let utcMin = (localHour * 60 + offsetMin) % 1440; if (utcMin < 0) utcMin += 1440;
+  const r = await fetch(`${SYNC_URL}/push/subscribe`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ code: store.syncCode, subscription: sub.toJSON(), hourUtc: Math.floor(utcMin / 60), offsetMin }),
+  });
+  return { ok: r.ok };
+}
+async function disablePush() {
+  const reg = await navigator.serviceWorker.ready;
+  const sub = await reg.pushManager.getSubscription();
+  if (sub) await sub.unsubscribe();
+  await fetch(`${SYNC_URL}/push/unsubscribe`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code: store.syncCode }),
+  }).catch(() => {});
 }
 
 // ---- 每日目標 / 連續打卡 / 考前倒數 ----
@@ -476,6 +514,7 @@ function stats() {
 function settings() {
   setNav('settings');
   if (SYNC_URL) pushSync(); // 打開設定頁就把最新進度上傳,確保拿碼去別台時雲端已是最新
+  const remHour = (store.settings && store.settings.reminderHour) || 20;
   view.innerHTML = `
     <section class="card">
       <h2>設定</h2>
@@ -486,6 +525,14 @@ function settings() {
       <label>考試日期(首頁倒數用)
         <input id="set-exam" type="date" value="${(store.settings && store.settings.examDate) || ''}">
       </label>
+
+      <h3>每日提醒(推播)</h3>
+      <p class="muted">到設定時間若今天還沒練,會推播提醒你刷題。iPhone 需先把本站「加到主畫面」,並從安裝後的 app 開啟才收得到。</p>
+      <label>提醒時間
+        <select id="rem-hour">${Array.from({ length: 24 }, (_, h) => `<option value="${h}" ${h === remHour ? 'selected' : ''}>${String(h).padStart(2, '0')}:00</option>`).join('')}</select>
+      </label>
+      <button id="rem-toggle">${pushSupported() ? '載入中…' : '此瀏覽器不支援推播'}</button>
+      <span id="rem-msg" class="muted"></span>
 
       <h3>同步碼</h3>
       <p class="muted">${SYNC_URL
@@ -510,6 +557,26 @@ function settings() {
     </section>`;
   $('#set-goal').onchange = (e) => { store.settings ||= {}; store.settings.dailyGoal = Math.max(1, +e.target.value || 20); save(); };
   $('#set-exam').onchange = (e) => { store.settings ||= {}; store.settings.examDate = e.target.value; save(); };
+  if ($('#rem-hour')) $('#rem-hour').onchange = async (e) => {
+    store.settings ||= {}; store.settings.reminderHour = +e.target.value; save();
+    if (await pushIsOn()) { await enablePush(+e.target.value); $('#rem-msg').textContent = '提醒時間已更新'; }
+  };
+  if (pushSupported() && $('#rem-toggle')) {
+    const btn = $('#rem-toggle');
+    pushIsOn().then((on) => { btn.textContent = on ? '關閉提醒' : '開啟提醒'; });
+    btn.onclick = async () => {
+      btn.disabled = true; $('#rem-msg').textContent = '處理中…';
+      try {
+        if (await pushIsOn()) { await disablePush(); btn.textContent = '開啟提醒'; $('#rem-msg').textContent = '已關閉提醒'; }
+        else {
+          const r = await enablePush((store.settings && store.settings.reminderHour) || 20);
+          if (r.ok) { btn.textContent = '關閉提醒'; $('#rem-msg').textContent = '已開啟,每天到點提醒'; }
+          else { $('#rem-msg').textContent = '開啟失敗:' + (r.reason || '請稍後再試'); }
+        }
+      } catch { $('#rem-msg').textContent = '發生錯誤,請稍後再試'; }
+      btn.disabled = false;
+    };
+  }
   $('#code-set').onclick = async () => {
     const v = $('#code-in').value.trim();
     if (!v) return;

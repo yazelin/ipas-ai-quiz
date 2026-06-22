@@ -8,3 +8,12 @@ compatibility_date = "2026-06-01"
 [[kv_namespaces]]
 binding = "SYNC"
 id = "a38f175fd0bf48b0be7c8d997bc1cd04"
+
+# 每小時整點跑,檢查誰到提醒時間且今天還沒練
+[triggers]
+crons = ["0 * * * *"]
+
+[vars]
+VAPID_PUBLIC = "BNn4Lwq818aHx8cb0LrcQ6IpRgHb9B3P_BOqusct-uFyJPQ4hlDrIOirliHoNdbbg5tg8zWfzBg5SZ0yBhRq7zA"
+ADMIN_CONTACT = "mailto:yazelin@ching-tech.com"
+# 私鑰用 secret:wrangler secret put VAPID_PRIVATE

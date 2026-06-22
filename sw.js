@@ -1,6 +1,6 @@
 // 離線快取:app shell + 題庫。stale-while-revalidate(先給快取、背景更新)。
 // 改版要更新快取時,把 CACHE 版號 +1。
-const CACHE = 'ipas-v5';
+const CACHE = 'ipas-v6';
 const SHELL = ['./', 'index.html', 'app.js', 'core.js', 'manifest.json', 'favicon.svg', 'questions.json', 'concepts.json', 'icon-192.png', 'icon-512.png'];
 
 self.addEventListener('install', (e) => {
@@ -9,6 +9,21 @@ self.addEventListener('install', (e) => {
 self.addEventListener('activate', (e) => {
   e.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => k !== CACHE).map((k) => caches.delete(k)))).then(() => self.clients.claim()));
 });
+// 推播:顯示通知
+self.addEventListener('push', (e) => {
+  let d = { title: 'iPAS 模考', body: '來刷幾題吧!', url: '/' };
+  try { d = { ...d, ...e.data.json() }; } catch {}
+  e.waitUntil(self.registration.showNotification(d.title, { body: d.body, icon: 'icon-192.png', badge: 'icon-192.png', data: { url: d.url } }));
+});
+self.addEventListener('notificationclick', (e) => {
+  e.notification.close();
+  const url = (e.notification.data && e.notification.data.url) || './';
+  e.waitUntil(self.clients.matchAll({ type: 'window' }).then((ws) => {
+    for (const w of ws) if ('focus' in w) return w.focus();
+    return self.clients.openWindow(url);
+  }));
+});
+
 self.addEventListener('fetch', (e) => {
   const r = e.request;
   // 只接管同源 GET;跨網域(同步 worker)不攔
