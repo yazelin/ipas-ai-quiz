@@ -13,15 +13,18 @@ let store = load();
 let pushTimer = null;
 
 // PWA 安裝:接管 beforeinstallprompt,顯示自家「安裝」按鈕(Android/桌面 Chrome)
+// 用單機旗標記住「已關掉/已安裝」就別再顯示(install 狀態每台不同,故不進同步 store)
 let deferredInstall = null;
 const isStandalone = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+const installBarOff = () => localStorage.getItem('ipas_installbar_off') === '1';
+const dismissInstallBar = () => { localStorage.setItem('ipas_installbar_off', '1'); const b = document.getElementById('installbar'); if (b) b.hidden = true; deferredInstall = null; };
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   deferredInstall = e;
   const bar = document.getElementById('installbar');
-  if (bar && !isStandalone()) bar.hidden = false;
+  if (bar && !isStandalone() && !installBarOff()) bar.hidden = false;
 });
-window.addEventListener('appinstalled', () => { const b = document.getElementById('installbar'); if (b) b.hidden = true; deferredInstall = null; });
+window.addEventListener('appinstalled', dismissInstallBar);
 
 // ---- localStorage ----
 function load() {
@@ -651,16 +654,16 @@ const ROUTES = { home, mock: mockSetup, wrong: wrongbook, stats, settings };
 // ---- boot ----
 async function boot() {
   document.querySelectorAll('nav button').forEach((b) => (b.onclick = () => ROUTES[b.dataset.v]()));
+  if (isStandalone() || installBarOff()) { const b = document.getElementById('installbar'); if (b) b.hidden = true; }
   const ib = document.getElementById('install-btn');
   if (ib) ib.onclick = async () => {
     if (!deferredInstall) return;
     deferredInstall.prompt();
     await deferredInstall.userChoice.catch(() => {});
-    deferredInstall = null;
-    document.getElementById('installbar').hidden = true;
+    dismissInstallBar();
   };
   const ix = document.getElementById('install-x');
-  if (ix) ix.onclick = () => { document.getElementById('installbar').hidden = true; };
+  if (ix) ix.onclick = dismissInstallBar;
   try {
     DATA = await (await fetch('questions.json')).json();
   } catch {
