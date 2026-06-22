@@ -115,24 +115,36 @@ function home() {
       <div class="row range-head"><span class="muted" id="range-sum"></span>
         <span><button id="sel-all">全選</button><button id="sel-none">清除</button></span></div>
       <div id="ranges">${ranges}</div>
+      <label>關鍵字(選填)
+        <input id="pr-kw" placeholder="例如 RAG、特徵工程、Transformer">
+      </label>
       <label>題數
         <select id="pr-count"><option value="10">10</option><option value="20">20</option><option value="0">全部(選取範圍)</option></select>
       </label>
       <button class="primary" id="pr-start">開始練習</button>
     </section>`;
   const selectedKeys = () => new Set([...view.querySelectorAll('.rng:checked')].map((c) => c.value));
+  const kw = () => $('#pr-kw').value.trim().toLowerCase();
+  const matchKw = (q) => {
+    const k = kw();
+    if (!k) return true;
+    return `${q.question}${q.topic || ''}${q.chapter || ''}${q.options.join(' ')}`.toLowerCase().includes(k);
+  };
+  const pickPool = () => {
+    const keys = selectedKeys();
+    return DATA.questions.filter((q) => keys.has(rangeKey(q)) && matchKw(q));
+  };
   const updateSum = () => {
     const keys = selectedKeys();
-    const n = DATA.questions.filter((q) => keys.has(rangeKey(q))).length;
-    $('#range-sum').textContent = `已選 ${keys.size} 範圍,共 ${n} 題`;
+    $('#range-sum').textContent = `已選 ${keys.size} 範圍,共 ${pickPool().length} 題`;
   };
   view.querySelectorAll('.rng').forEach((c) => (c.onchange = updateSum));
+  $('#pr-kw').oninput = updateSum;
   $('#sel-all').onclick = () => { view.querySelectorAll('.rng').forEach((c) => (c.checked = true)); updateSum(); };
   $('#sel-none').onclick = () => { view.querySelectorAll('.rng').forEach((c) => (c.checked = false)); updateSum(); };
   $('#pr-start').onclick = () => {
-    const keys = selectedKeys();
     const count = +$('#pr-count').value;
-    let pool = shuffle(DATA.questions.filter((q) => keys.has(rangeKey(q))));
+    let pool = shuffle(pickPool());
     if (count) pool = pool.slice(0, count);
     runPractice(pool);
   };
