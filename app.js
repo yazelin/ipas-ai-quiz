@@ -12,6 +12,17 @@ let CONCEPTS = [];
 let store = load();
 let pushTimer = null;
 
+// PWA 安裝:接管 beforeinstallprompt,顯示自家「安裝」按鈕(Android/桌面 Chrome)
+let deferredInstall = null;
+const isStandalone = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredInstall = e;
+  const bar = document.getElementById('installbar');
+  if (bar && !isStandalone()) bar.hidden = false;
+});
+window.addEventListener('appinstalled', () => { const b = document.getElementById('installbar'); if (b) b.hidden = true; deferredInstall = null; });
+
 // ---- localStorage ----
 function load() {
   try {
@@ -640,6 +651,16 @@ const ROUTES = { home, mock: mockSetup, wrong: wrongbook, stats, settings };
 // ---- boot ----
 async function boot() {
   document.querySelectorAll('nav button').forEach((b) => (b.onclick = () => ROUTES[b.dataset.v]()));
+  const ib = document.getElementById('install-btn');
+  if (ib) ib.onclick = async () => {
+    if (!deferredInstall) return;
+    deferredInstall.prompt();
+    await deferredInstall.userChoice.catch(() => {});
+    deferredInstall = null;
+    document.getElementById('installbar').hidden = true;
+  };
+  const ix = document.getElementById('install-x');
+  if (ix) ix.onclick = () => { document.getElementById('installbar').hidden = true; };
   try {
     DATA = await (await fetch('questions.json')).json();
   } catch {

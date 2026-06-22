@@ -78,6 +78,10 @@
   .range-item span { flex:1; font-size:14px; }
   .range-item b { color:var(--c-accent); font-variant-numeric:tabular-nums; }
   .qfig { max-width:100%; border:1px solid var(--c-line); border-radius:8px; margin:10px 0; display:block; }
+  #installbar { display:flex; align-items:center; justify-content:space-between; gap:8px; max-width:720px; margin:0 auto; padding:10px 14px; background:#2563eb; color:#fff; font-size:14px; }
+  #installbar button { border:0; border-radius:8px; padding:6px 12px; font-size:14px; cursor:pointer; margin-left:6px; }
+  #install-btn { background:#fff; color:#2563eb; font-weight:600; }
+  #install-x { background:transparent; color:#fff; }
   .guide { font-size:13px; color:var(--c-muted); background:#f1f5f9; border-radius:8px; padding:8px 10px; margin:8px 0; }
   .guide a { color:var(--c-accent); white-space:nowrap; }
   .daily-card { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
@@ -118,6 +122,10 @@
       <button data-v="settings">設定</button>
     </nav>
   </header>
+  <div id="installbar" hidden>
+    <span>把模考裝成 app,離線也能刷</span>
+    <span><button id="install-btn">安裝</button><button id="install-x" aria-label="關閉">✕</button></span>
+  </div>
   <main id="view"></main>
   <footer class="site-footer">
     <nav>
