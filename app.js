@@ -166,6 +166,7 @@ function runPractice(pool, opts = {}) {
           <button class="star ${p.starred ? 'on' : ''}" id="star">${p.starred ? '★ 已標' : '☆ 標記'}</button></div>
         <p class="qmeta muted">${esc(q.subject)}${q.topic ? '・' + esc(q.topic) : ''}</p>
         <h3>${esc(q.question)}</h3>
+        ${q.image ? `<img class="qfig" src="${esc(q.image)}" alt="題目附圖" loading="lazy">` : ''}
         <div id="opts">${q.options.map((o, k) => `<button class="opt" data-k="${k}">${esc(o)}</button>`).join('')}</div>
         <div id="fb"></div>
       </section>`;
@@ -234,6 +235,7 @@ function runMock(pool, mins) {
         <div class="row"><span class="muted">${i + 1} / ${pool.length}</span><span id="timer" class="timer">--:--</span></div>
         <p class="qmeta muted">${esc(q.subject)}</p>
         <h3>${esc(q.question)}</h3>
+        ${q.image ? `<img class="qfig" src="${esc(q.image)}" alt="題目附圖" loading="lazy">` : ''}
         <div id="opts">${q.options.map((o, k) =>
           `<button class="opt ${answers[i] === k ? 'picked' : ''}" data-k="${k}">${esc(o)}</button>`).join('')}</div>
         <div class="row">
