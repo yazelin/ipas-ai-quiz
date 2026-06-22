@@ -1,0 +1,122 @@
+{
+  "meta": {
+    "title": "iPAS AI 應用規劃師 模擬考練習",
+    "note": "以下為『範例題』,非官方試題,僅供驗證系統用。請依 iPAS 歷屆試題補齊 questions 陣列。",
+    "defaultTimeLimitMin": 60
+  },
+  "questions": [
+    {
+      "id": "sample-b-s1-q1",
+      "level": "初級",
+      "round": "範例",
+      "subject": "科目1：人工智慧基礎概論",
+      "topic": "機器學習基礎",
+      "question": "下列何者最能描述『監督式學習 (Supervised Learning)』?",
+      "options": [
+        "使用沒有標籤的資料,讓模型自行找出資料結構",
+        "使用帶有正確答案(標籤)的資料來訓練模型",
+        "讓代理人透過與環境互動、依獎勵訊號學習",
+        "把資料壓縮成較低維度以便視覺化"
+      ],
+      "answer": 1,
+      "explanation": "監督式學習的訓練資料含有輸入與對應的正確標籤(label),模型學習從輸入映射到標籤。無標籤資料找結構是非監督式;依獎勵學習是強化學習。"
+    },
+    {
+      "id": "sample-b-s1-q2",
+      "level": "初級",
+      "round": "範例",
+      "subject": "科目1：人工智慧基礎概論",
+      "topic": "模型評估",
+      "question": "模型在訓練資料上表現很好,但在沒看過的測試資料上表現很差。這個現象稱為?",
+      "options": ["欠擬合 (Underfitting)", "過擬合 (Overfitting)", "正規化 (Regularization)", "標準化 (Normalization)"],
+      "answer": 1,
+      "explanation": "過擬合指模型過度記憶訓練資料的細節與雜訊,導致對新資料的泛化能力差。欠擬合則是連訓練資料都學不好。"
+    },
+    {
+      "id": "sample-b-s1-q3",
+      "level": "初級",
+      "round": "範例",
+      "subject": "科目1：人工智慧基礎概論",
+      "topic": "神經網路",
+      "question": "在類神經網路中,『激活函數 (Activation Function)』最主要的作用是?",
+      "options": [
+        "加快資料讀取速度",
+        "引入非線性,使網路能學習複雜的關係",
+        "減少訓練資料的數量",
+        "把圖片轉成文字"
+      ],
+      "answer": 1,
+      "explanation": "若沒有非線性激活函數,多層網路疊起來仍等價於一個線性轉換。激活函數(如 ReLU、Sigmoid)引入非線性,讓網路能逼近複雜函數。"
+    },
+    {
+      "id": "sample-b-s1-q4",
+      "level": "初級",
+      "round": "範例",
+      "subject": "科目1：人工智慧基礎概論",
+      "topic": "資料處理",
+      "question": "將不同尺度的特徵(例如年齡 0–100 與年收入 0–百萬)調整到相近範圍,常見手法稱為?",
+      "options": ["資料增強", "特徵縮放 (Feature Scaling)", "資料外洩", "標籤編碼"],
+      "answer": 1,
+      "explanation": "特徵縮放(標準化/正規化)讓各特徵量級相近,避免量級大的特徵主導距離或梯度,常見於 KNN、SVM、梯度下降類模型。"
+    },
+    {
+      "id": "sample-b-s2-q1",
+      "level": "初級",
+      "round": "範例",
+      "subject": "科目2：生成式AI應用與規劃",
+      "topic": "大型語言模型",
+      "question": "關於大型語言模型 (LLM) 的『幻覺 (Hallucination)』,下列敘述何者正確?",
+      "options": [
+        "模型輸出看似合理但與事實不符的內容",
+        "模型完全無法產生文字",
+        "模型只能回答訓練時看過的原句",
+        "模型的回應速度變慢"
+      ],
+      "answer": 0,
+      "explanation": "幻覺指 LLM 產生流暢、看似可信但實際錯誤或虛構的內容。緩解方式包含檢索增強生成(RAG)、要求引用來源、降低 temperature 等。"
+    },
+    {
+      "id": "sample-b-s2-q2",
+      "level": "初級",
+      "round": "範例",
+      "subject": "科目2：生成式AI應用與規劃",
+      "topic": "提示工程",
+      "question": "在提示 (prompt) 中給模型幾個『輸入→輸出』的範例,再要求它處理新輸入,這種技巧稱為?",
+      "options": ["零樣本 (Zero-shot)", "少樣本 (Few-shot)", "微調 (Fine-tuning)", "蒸餾 (Distillation)"],
+      "answer": 1,
+      "explanation": "在提示中提供少量範例引導模型,稱為 few-shot prompting。完全不給範例是 zero-shot;以資料重新訓練權重才是 fine-tuning。"
+    },
+    {
+      "id": "sample-b-s2-q3",
+      "level": "初級",
+      "round": "範例",
+      "subject": "科目2：生成式AI應用與規劃",
+      "topic": "RAG",
+      "question": "檢索增強生成 (RAG) 的主要目的是?",
+      "options": [
+        "讓模型回應更慢但更省電",
+        "讓模型在生成前先檢索外部知識,以提升正確性與時效性",
+        "把模型參數量變大一倍",
+        "完全取代模型的訓練過程"
+      ],
+      "answer": 1,
+      "explanation": "RAG 先從外部知識庫檢索相關文件,再把它們放進提示供模型參考,藉此補足模型訓練時沒有或已過時的知識,降低幻覺。"
+    },
+    {
+      "id": "sample-b-s2-q4",
+      "level": "初級",
+      "round": "範例",
+      "subject": "科目2：生成式AI應用與規劃",
+      "topic": "生成式AI應用",
+      "question": "企業導入生成式 AI 時,下列哪一項是處理機敏資料時最該優先考量的風險?",
+      "options": [
+        "模型的圖示好不好看",
+        "資料隱私與外洩(輸入內容可能被記錄或用於再訓練)",
+        "回應字數是否太多",
+        "介面是否支援深色模式"
+      ],
+      "answer": 1,
+      "explanation": "將機敏資料送入第三方模型可能造成隱私外洩或違反法遵。導入前應評估資料留存政策、是否用於再訓練,並考慮去識別化或地端部署。"
+    }
+  ]
+}

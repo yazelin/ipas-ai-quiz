@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>iPAS AI 應用規劃師 模擬考練習</title>
+<style>
+  :root { --c-bg:#f6f7f9; --c-card:#fff; --c-ink:#1c2330; --c-muted:#6b7280; --c-line:#e5e7eb;
+          --c-accent:#2563eb; --c-ok:#16a34a; --c-bad:#dc2626; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family:system-ui,-apple-system,"Noto Sans TC",sans-serif; background:var(--c-bg); color:var(--c-ink); line-height:1.6; }
+  header { padding:16px; text-align:center; }
+  header h1 { font-size:18px; margin:0; }
+  #banner { max-width:720px; margin:0 auto 8px; padding:8px 12px; font-size:13px; color:#92400e; background:#fef3c7; border-radius:8px; }
+  nav { display:flex; gap:4px; justify-content:center; flex-wrap:wrap; padding:0 8px 8px; }
+  nav button { border:0; background:none; padding:8px 12px; border-radius:8px; color:var(--c-muted); font-size:15px; cursor:pointer; }
+  nav button.on { background:var(--c-card); color:var(--c-accent); font-weight:600; box-shadow:0 1px 2px rgba(0,0,0,.06); }
+  main { max-width:720px; margin:0 auto; padding:8px 12px 48px; }
+  .card { background:var(--c-card); border:1px solid var(--c-line); border-radius:14px; padding:20px; margin-bottom:16px; }
+  h2 { margin-top:0; }
+  .muted { color:var(--c-muted); }
+  label { display:block; margin:12px 0 4px; font-size:14px; }
+  select, input, textarea { width:100%; padding:10px; border:1px solid var(--c-line); border-radius:8px; font-size:15px; font-family:inherit; }
+  button.primary { background:var(--c-accent); color:#fff; border:0; padding:12px 18px; border-radius:10px; font-size:16px; cursor:pointer; margin-top:14px; }
+  .card > button:not(.primary) { background:#eef0f3; border:0; padding:10px 14px; border-radius:8px; font-size:14px; cursor:pointer; margin:8px 8px 0 0; }
+  .opt { display:block; width:100%; text-align:left; padding:12px 14px; margin:8px 0; border:1px solid var(--c-line); border-radius:10px; background:#fff; font-size:15px; cursor:pointer; }
+  .opt:hover { border-color:var(--c-accent); }
+  .opt.correct { border-color:var(--c-ok); background:#f0fdf4; }
+  .opt.wrong { border-color:var(--c-bad); background:#fef2f2; }
+  .opt.picked { border-color:var(--c-accent); background:#eff6ff; }
+  .opt:disabled { cursor:default; }
+  .row { display:flex; justify-content:space-between; align-items:center; gap:8px; }
+  .star { border:0; background:none; color:var(--c-muted); cursor:pointer; font-size:14px; }
+  .star.on { color:#f59e0b; }
+  .ok { color:var(--c-ok); font-weight:600; } .bad { color:var(--c-bad); font-weight:600; }
+  .exp { background:#f8fafc; border-left:3px solid var(--c-accent); padding:10px 12px; border-radius:0 8px 8px 0; }
+  .note textarea { margin-top:4px; }
+  .timer { font-variant-numeric:tabular-nums; font-weight:600; color:var(--c-accent); }
+  .score { font-size:48px; font-weight:700; color:var(--c-accent); margin:8px 0; }
+  .grid { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; text-align:center; margin:12px 0; }
+  .grid div { background:#f8fafc; border-radius:10px; padding:12px 4px; }
+  .grid b { display:block; font-size:24px; } .grid span { font-size:12px; color:var(--c-muted); }
+  table { width:100%; border-collapse:collapse; margin-top:8px; }
+  th, td { text-align:left; padding:8px; border-bottom:1px solid var(--c-line); font-size:14px; }
+  ul.wrong { padding-left:18px; } ul.wrong li { margin:6px 0; }
+  .code { font-family:ui-monospace,monospace; font-size:20px; background:#f8fafc; padding:10px; border-radius:8px; text-align:center; letter-spacing:1px; }
+  h3.danger, button.danger { color:var(--c-bad); }
+  button.danger { border:1px solid var(--c-bad)!important; background:#fff!important; }
+</style>
+</head>
+<body>
+  <header>
+    <h1 id="title">iPAS AI 應用規劃師 模擬考練習</h1>
+    <p id="banner" hidden></p>
+    <nav>
+      <button data-v="home" class="on">練習</button>
+      <button data-v="mock">模擬考</button>
+      <button data-v="wrong">錯題本</button>
+      <button data-v="stats">統計</button>
+      <button data-v="settings">設定</button>
+    </nav>
+  </header>
+  <main id="view"></main>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
