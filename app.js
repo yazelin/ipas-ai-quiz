@@ -23,6 +23,34 @@ function logRecent(correct) {
   (store.recent ||= []).push(correct ? 1 : 0);
   if (store.recent.length > 50) store.recent = store.recent.slice(-50);
 }
+
+// ---- 每日目標 / 連續打卡 / 考前倒數 ----
+const ymd = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+const today = () => ymd(new Date());
+const yesterday = () => { const d = new Date(); d.setDate(d.getDate() - 1); return ymd(d); };
+const dailyGoal = () => (store.settings && store.settings.dailyGoal) || 20;
+const todayCount = () => (store.daily && store.daily.date === today() ? store.daily.count : 0);
+// 顯示用的連續天數:最後達標日是今天或昨天才還活著,否則歸 0
+function liveStreak() {
+  const s = store.streak; if (!s || !s.lastDate) return 0;
+  return (s.lastDate === today() || s.lastDate === yesterday()) ? s.count : 0;
+}
+function daysUntilExam() {
+  const e = store.settings && store.settings.examDate; if (!e) return null;
+  const diff = Math.ceil((new Date(e + 'T00:00:00') - new Date(today() + 'T00:00:00')) / 86400000);
+  return diff;
+}
+// 每答一題呼叫:累加今日題數,達標當下更新打卡
+function bumpDaily() {
+  const t = today();
+  store.settings ||= { dailyGoal: 20, examDate: '' };
+  if (!store.daily || store.daily.date !== t) store.daily = { date: t, count: 0 };
+  store.daily.count++;
+  store.streak ||= { count: 0, lastDate: '' };
+  if (store.daily.count === dailyGoal() && store.streak.lastDate !== t) {
+    store.streak = { count: (store.streak.lastDate === yesterday() ? store.streak.count : 0) + 1, lastDate: t };
+  }
+}
 function save() {
   store.updatedAt = Date.now();
   localStorage.setItem(STORE_KEY, JSON.stringify(store));
@@ -121,7 +149,18 @@ function home() {
   const ranges = Object.entries(byLevel).map(([lv, gs]) =>
     `<div class="range-group"><div class="range-lv">${esc(lv)}</div>${gs.map((g) =>
       `<label class="range-item"><input type="checkbox" class="rng" value="${esc(g.key)}" checked><span>${esc(g.key)}</span><b>${g.count}</b></label>`).join('')}</div>`).join('');
-  view.innerHTML = `
+  const g = dailyGoal(), dc = todayCount(), strk = liveStreak(), du = daysUntilExam();
+  const goalHit = dc >= g;
+  const dailyStrip = `
+    <section class="card daily-card">
+      <div class="daily">
+        <div><b class="${goalHit ? 'hit' : ''}">${dc}/${g}</b><span>今日題數${goalHit ? ' ✓' : ''}</span></div>
+        <div><b>${strk}</b><span>連續天數</span></div>
+        ${du != null ? `<div><b>${du < 0 ? '—' : du}</b><span>${du < 0 ? '考試已過' : '距考試(天)'}</span></div>` : ''}
+      </div>
+      <button id="share">分享進度</button>
+    </section>`;
+  view.innerHTML = `${dailyStrip}
     <section class="card">
       <h2>練習模式</h2>
       <p class="muted">即時看答案與解析。勾選要練的範圍,預設全選。</p>
@@ -174,6 +213,12 @@ function home() {
     if (count) pool = pool.slice(0, count);
     runPractice(pool);
   };
+  $('#share').onclick = async () => {
+    const txt = `我在 iPAS AI 應用規劃師模擬考刷題:連續打卡 ${strk} 天、今日 ${dc}/${g} 題。一起來練歷屆考古題!`;
+    const url = location.origin + location.pathname;
+    if (navigator.share) { try { await navigator.share({ title: 'iPAS 模考練習', text: txt, url }); } catch {} }
+    else { try { await navigator.clipboard.writeText(`${txt} ${url}`); $('#share').textContent = '已複製連結'; } catch {} }
+  };
   updateSum();
 }
 
@@ -207,6 +252,7 @@ function runPractice(pool, opts = {}) {
     if (correct) p.correct++; else p.wrong++;
     p.box = nextBox(p.box, correct);
     logRecent(correct);
+    bumpDaily();
     save();
     view.querySelectorAll('.opt').forEach((b, idx) => {
       b.disabled = true;
@@ -286,6 +332,7 @@ function runMock(pool, mins) {
       if (correct) p.correct++; else p.wrong++;
       p.box = nextBox(p.box, correct);
       logRecent(correct);
+      bumpDaily();
     });
     save();
     const r = scoreExam(pool, answers);
@@ -360,6 +407,14 @@ function settings() {
   view.innerHTML = `
     <section class="card">
       <h2>設定</h2>
+      <h3>學習目標</h3>
+      <label>每日目標題數
+        <input id="set-goal" type="number" min="1" max="611" value="${dailyGoal()}">
+      </label>
+      <label>考試日期(首頁倒數用)
+        <input id="set-exam" type="date" value="${(store.settings && store.settings.examDate) || ''}">
+      </label>
+
       <h3>同步碼</h3>
       <p class="muted">${SYNC_URL
         ? '平常背景自動同步(每隔幾秒、切走 app 時、打開本頁時都會上傳)。換新裝置時:先在舊裝置打開這頁(會上傳),再到新裝置輸入這組碼。'
@@ -381,6 +436,8 @@ function settings() {
       <h3 class="danger">重設</h3>
       <button class="danger" id="reset">清除本機所有進度</button>
     </section>`;
+  $('#set-goal').onchange = (e) => { store.settings ||= {}; store.settings.dailyGoal = Math.max(1, +e.target.value || 20); save(); };
+  $('#set-exam').onchange = (e) => { store.settings ||= {}; store.settings.examDate = e.target.value; save(); };
   $('#code-set').onclick = async () => {
     const v = $('#code-in').value.trim();
     if (!v) return;
