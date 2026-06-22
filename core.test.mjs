@@ -1,14 +1,20 @@
 // node core.test.mjs  — 邏輯壞掉就會 throw。
 import assert from 'node:assert';
-import { nextBox, isMastered, scoreExam, progressStats, wrongQuestionIds, toMarkdown } from './core.js';
+import { nextBox, isMastered, scoreExam, progressStats, wrongQuestionIds, toMarkdown, reviewPriority } from './core.js';
 
-// Leitner
+// 出題優先序:錯題(0) < 沒做過(1) < 做過未掌握(2) < 已掌握(3)
+assert.equal(reviewPriority({ box: 1, attempts: 2, wrong: 1 }), 0);
+assert.equal(reviewPriority({ box: 1, attempts: 0, wrong: 0 }), 1);
+assert.equal(reviewPriority({ box: 2, attempts: 1, wrong: 0 }), 2);
+assert.equal(reviewPriority({ box: 3, attempts: 3, wrong: 0 }), 3);
+
+// Leitner(MASTER_BOX=3:連對 2 次即掌握)
 assert.equal(nextBox(1, true), 2);
-assert.equal(nextBox(4, true), 5);
-assert.equal(nextBox(5, true), 5, '已到頂不超過 5');
-assert.equal(nextBox(3, false), 1, '答錯掉回 1');
-assert.equal(isMastered(5), true);
-assert.equal(isMastered(4), false);
+assert.equal(nextBox(2, true), 3, '連對 2 次到頂');
+assert.equal(nextBox(3, true), 3, '已到頂不超過 3');
+assert.equal(nextBox(2, false), 1, '答錯掉回 1');
+assert.equal(isMastered(3), true);
+assert.equal(isMastered(2), false);
 
 // 計分
 const qs = [

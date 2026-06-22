@@ -1,4 +1,4 @@
-import { nextBox, isMastered, scoreExam, progressStats, wrongQuestionIds, toMarkdown } from './core.js';
+import { nextBox, isMastered, scoreExam, progressStats, wrongQuestionIds, toMarkdown, reviewPriority } from './core.js';
 
 const STORE_KEY = 'ipas_quiz_progress';
 // 部署 Cloudflare Worker 後填入,例如 'https://ipas-quiz-sync.你的帳號.workers.dev'。留空=只用本機。
@@ -16,7 +16,12 @@ function load() {
     const s = JSON.parse(localStorage.getItem(STORE_KEY));
     if (s && s.q) return s;
   } catch {}
-  return { v: 1, syncCode: makeCode(), q: {}, updatedAt: 0 };
+  return { v: 1, syncCode: makeCode(), q: {}, recent: [], updatedAt: 0 };
+}
+// 記一筆最近作答結果(1/0),保留最近 50 筆,供「近期正確率」
+function logRecent(correct) {
+  (store.recent ||= []).push(correct ? 1 : 0);
+  if (store.recent.length > 50) store.recent = store.recent.slice(-50);
 }
 function save() {
   store.updatedAt = Date.now();
@@ -126,6 +131,12 @@ function home() {
       <label>關鍵字(選填)
         <input id="pr-kw" placeholder="例如 RAG、特徵工程、Transformer">
       </label>
+      <label>出題方式
+        <select id="pr-mode">
+          <option value="smart">智慧複習(優先錯題與沒做過的)</option>
+          <option value="random">隨機</option>
+        </select>
+      </label>
       <label>題數
         <select id="pr-count"><option value="10">10</option><option value="20">20</option><option value="0">全部(選取範圍)</option></select>
       </label>
@@ -152,7 +163,14 @@ function home() {
   $('#sel-none').onclick = () => { view.querySelectorAll('.rng').forEach((c) => (c.checked = false)); updateSum(); };
   $('#pr-start').onclick = () => {
     const count = +$('#pr-count').value;
-    let pool = shuffle(pickPool());
+    let pool = pickPool();
+    if ($('#pr-mode').value === 'smart') {
+      // 依優先序排(錯題→沒做過→做過未掌握→已掌握),同級隨機
+      pool = pool.map((q) => ({ q, pr: reviewPriority(store.q[q.id]), r: Math.random() }))
+        .sort((a, b) => a.pr - b.pr || a.r - b.r).map((x) => x.q);
+    } else {
+      pool = shuffle(pool);
+    }
     if (count) pool = pool.slice(0, count);
     runPractice(pool);
   };
@@ -188,6 +206,7 @@ function runPractice(pool, opts = {}) {
     p.attempts++;
     if (correct) p.correct++; else p.wrong++;
     p.box = nextBox(p.box, correct);
+    logRecent(correct);
     save();
     view.querySelectorAll('.opt').forEach((b, idx) => {
       b.disabled = true;
@@ -266,6 +285,7 @@ function runMock(pool, mins) {
       p.attempts++;
       if (correct) p.correct++; else p.wrong++;
       p.box = nextBox(p.box, correct);
+      logRecent(correct);
     });
     save();
     const r = scoreExam(pool, answers);
@@ -313,15 +333,19 @@ function stats() {
   }
   const chRows = [...byCh.values()].map((x) =>
     `<tr><td>${esc(x.key)}</td><td>${x.attempts ? Math.round((x.correct / x.attempts) * 1000) / 10 + '％' : '—'}</td><td>${x.mastered}/${x.total}</td></tr>`).join('');
+  const cover = s.total ? Math.round((s.practiced / s.total) * 1000) / 10 : 0;
+  const rec = store.recent || [];
+  const recAcc = rec.length ? Math.round((rec.reduce((a, b) => a + b, 0) / rec.length) * 1000) / 10 : null;
   view.innerHTML = `
     <section class="card">
       <h2>學習統計</h2>
       <div class="grid">
-        <div><b>${s.total}</b><span>總題數</span></div>
-        <div><b>${s.practiced}</b><span>已練習</span></div>
+        <div><b>${cover}％</b><span>涵蓋率(練過 ${s.practiced}/${s.total})</span></div>
+        <div><b>${recAcc == null ? '—' : recAcc + '％'}</b><span>近期正確率(最近 ${rec.length})</span></div>
         <div><b>${s.wrongNow}</b><span>目前錯題</span></div>
         <div><b>${s.mastered}</b><span>已掌握</span></div>
       </div>
+      <p class="muted" style="font-size:13px">「掌握」= 同一題連續答對 2 次。用「智慧複習」會優先讓你重做沒掌握與答錯的題,掌握數才會往上跑。</p>
       <h3>各範圍弱點</h3>
       <table>
         <tr><th>範圍</th><th>正確率</th><th>掌握</th></tr>

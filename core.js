@@ -1,11 +1,20 @@
 // 純邏輯,無 DOM、無 localStorage,方便用 node 測。app.js 與 core.test.mjs 都 import 這裡。
 
-export const MASTER_BOX = 5; // box 到 5 視為「已掌握」
+export const MASTER_BOX = 3; // box 從 1 起,到 3 視為「已掌握」= 連續答對 2 次
 
-// Leitner 盒子：答對升一格(上限 5)、答錯掉回 1。
+// Leitner 盒子：答對升一格(上限 MASTER_BOX)、答錯掉回 1。
 export function nextBox(box, correct) {
   const b = box || 1;
   return correct ? Math.min(b + 1, MASTER_BOX) : 1;
+}
+
+// 出題優先序(數字小先練):答錯未掌握 > 沒做過 > 做過未掌握 > 已掌握。供「智慧複習」排序。
+export function reviewPriority(p) {
+  const x = p || { box: 1, attempts: 0, wrong: 0 };
+  if (isMastered(x.box)) return 3;
+  if (x.wrong > 0) return 0;        // 錯過又沒掌握 → 最該練
+  if ((x.attempts || 0) === 0) return 1; // 沒做過
+  return 2;                          // 做過但還沒掌握
 }
 
 export function isMastered(box) {
