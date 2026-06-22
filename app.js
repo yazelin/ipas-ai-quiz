@@ -1,11 +1,14 @@
 import { nextBox, isMastered, scoreExam, progressStats, wrongQuestionIds, toMarkdown } from './core.js';
 
 const STORE_KEY = 'ipas_quiz_progress';
+// 部署 Cloudflare Worker 後填入,例如 'https://ipas-quiz-sync.你的帳號.workers.dev'。留空=只用本機。
+const SYNC_URL = '';
 const $ = (sel) => document.querySelector(sel);
 const view = $('#view');
 
 let DATA = { meta: {}, questions: [] };
 let store = load();
+let pushTimer = null;
 
 // ---- localStorage ----
 function load() {
@@ -13,10 +16,43 @@ function load() {
     const s = JSON.parse(localStorage.getItem(STORE_KEY));
     if (s && s.q) return s;
   } catch {}
-  return { v: 1, syncCode: makeCode(), q: {} };
+  return { v: 1, syncCode: makeCode(), q: {}, updatedAt: 0 };
 }
 function save() {
+  store.updatedAt = Date.now();
   localStorage.setItem(STORE_KEY, JSON.stringify(store));
+  schedulePush();
+}
+
+// ---- 雲端同步(同步碼,免帳號) ----
+function schedulePush() {
+  if (!SYNC_URL) return;
+  clearTimeout(pushTimer);
+  pushTimer = setTimeout(pushSync, 30000); // ponytail: debounce 30s,避免每答一題寫一次 KV
+}
+async function pushSync() {
+  clearTimeout(pushTimer); pushTimer = null;
+  if (!SYNC_URL || !store.syncCode) return false;
+  try {
+    const r = await fetch(`${SYNC_URL}/sync/${encodeURIComponent(store.syncCode)}`, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(store),
+    });
+    return r.ok;
+  } catch { return false; }
+}
+async function pullSync() {
+  if (!SYNC_URL || !store.syncCode) return false;
+  try {
+    const r = await fetch(`${SYNC_URL}/sync/${encodeURIComponent(store.syncCode)}`);
+    if (!r.ok) return false;
+    const remote = await r.json();
+    if (remote && remote.q && (remote.updatedAt || 0) > (store.updatedAt || 0)) {
+      store = remote;
+      localStorage.setItem(STORE_KEY, JSON.stringify(store));
+      return true;
+    }
+  } catch {}
+  return false;
 }
 function qp(id) {
   return (store.q[id] ||= { box: 1, attempts: 0, correct: 0, wrong: 0, note: '', starred: false });
@@ -238,12 +274,16 @@ function settings() {
     <section class="card">
       <h2>設定</h2>
       <h3>同步碼</h3>
-      <p class="muted">換裝置時,在新裝置輸入這組碼即可接上進度(雲端同步功能開發中)。平常不用管它。</p>
+      <p class="muted">${SYNC_URL
+        ? '平常背景自動同步,不用管它。換新裝置時,在新裝置輸入這組碼一次即可接上進度。'
+        : '雲端同步尚未啟用(需在 app.js 填入 Worker 網址)。目前可用下方「匯出/匯入」轉移。'}</p>
       <p class="code" id="code">${esc(store.syncCode)}</p>
       <label>在新裝置輸入既有同步碼
         <input id="code-in" placeholder="例如 fox-river-82">
       </label>
       <button id="code-set">套用此碼</button>
+      ${SYNC_URL ? '<button id="sync-now">立即同步</button>' : ''}
+      <span id="sync-msg" class="muted"></span>
 
       <h3>備份 / 轉移</h3>
       <button id="exp">匯出進度（JSON）</button>
@@ -254,9 +294,21 @@ function settings() {
       <h3 class="danger">重設</h3>
       <button class="danger" id="reset">清除本機所有進度</button>
     </section>`;
-  $('#code-set').onclick = () => {
+  $('#code-set').onclick = async () => {
     const v = $('#code-in').value.trim();
-    if (v) { store.syncCode = v; save(); settings(); }
+    if (!v) return;
+    store.syncCode = v;
+    store.updatedAt = 0; // 讓開啟時的 pull 一定採用雲端那份
+    localStorage.setItem(STORE_KEY, JSON.stringify(store));
+    if (SYNC_URL) await pullSync();
+    settings();
+  };
+  if ($('#sync-now')) $('#sync-now').onclick = async () => {
+    $('#sync-msg').textContent = '同步中…';
+    const pulled = await pullSync();
+    const pushed = await pushSync();
+    $('#sync-msg').textContent = pushed || pulled ? '已同步' : '同步失敗(檢查網路或同步碼)';
+    if (pulled) setTimeout(settings, 600);
   };
   $('#exp').onclick = () => download('ipas-progress.json', JSON.stringify(store, null, 2), 'application/json');
   $('#exp-md').onclick = () => download('ipas-notes.md', toMarkdown(DATA.questions, store.q), 'text/markdown');
@@ -288,7 +340,9 @@ async function boot() {
   }
   if (DATA.meta?.title) $('#title').textContent = DATA.meta.title;
   if (DATA.meta?.note) { const n = $('#banner'); n.textContent = DATA.meta.note; n.hidden = false; }
-  save(); // 確保 syncCode 落地
+  localStorage.setItem(STORE_KEY, JSON.stringify(store)); // 落地可能新生成的 syncCode(不動 updatedAt)
+  if (SYNC_URL) await pullSync(); // 開啟先拉雲端,單人多裝置就不會互蓋
+  document.addEventListener('visibilitychange', () => { if (document.hidden) pushSync(); });
   home();
 }
 boot();

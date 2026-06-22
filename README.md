@@ -27,9 +27,33 @@ python3 -m http.server 8000
 node core.test.mjs   # 印出 PASS;Leitner / 計分 / 統計 / 匯出 壞掉會 throw
 ```
 
+## 雲端自動同步(Cloudflare Worker)
+
+用「同步碼」跨裝置同步,免帳號、免密碼。`worker/` 已備妥:
+
+```bash
+cd worker
+npx wrangler kv namespace create SYNC     # 把印出的 id 貼進 wrangler.toml
+npx wrangler deploy                        # 取得 https://ipas-quiz-sync.<帳號>.workers.dev
+```
+
+再把該網址填進 `app.js` 最上面的 `SYNC_URL`,push。之後:
+
+- 平常背景**自動同步**(debounce 30 秒 + 切走頁面時,省 KV 寫入額度)。
+- 換新裝置時,在「設定」輸入舊裝置的同步碼**一次**即可接上;之後該裝置也自動。
+- 免費額度綽綽有餘:唯一要顧的是 KV 寫入 1,000 次/天,靠 debounce 一個人一天才幾十次。
+- `SYNC_URL` 留空時,網站仍可純本機使用(用設定頁的匯出/匯入轉移)。
+
 ## 補題庫
 
-編輯 `questions.json` 的 `questions` 陣列,push 即更新。每題格式:
+題庫 = `questions.json` 的 `questions` 陣列,push 即更新。
+
+iPAS 官方公告試題 PDF 直連網址形如
+`https://www.ipas.org.tw/api/proxy/uploads/certification_resource/<hash>/<檔名>.pdf`。
+抽文字:`./tools/extract.sh '<PDF網址>' out.txt`(用 `pdftotext`,**答案就在最左欄**),
+再把文字結構化成下列格式(交給 LLM 比寫 regex 穩,這批 PDF 一年才更新兩次)。
+
+每題格式:
 
 ```json
 {
@@ -53,6 +77,13 @@ node core.test.mjs   # 印出 PASS;Leitner / 計分 / 統計 / 匯出 壞掉會 
 - 程式碼:MIT(見 `LICENSE`)。
 - 題庫內容**不在 MIT 範圍**:目前 `questions.json` 內為自寫範例題。iPAS 官方歷屆試題有其著作權,公開散布前請確認重製條款;自行撰寫的解析才是可公開的原創內容。
 
+## 題庫進度
+
+- [x] 初級 114年第四次 科目1：人工智慧基礎概論(50 題,真題+官方答案)
+- [ ] 初級 科目2、115年各梯次
+- [ ] 中級 科目1–3 各梯次
+
 ## Roadmap
 
-- [ ] 雲端同步(Cloudflare Worker + KV,用同步碼,免帳號)——目前同步碼已產生並顯示,推拉尚未接。
+- [x] 雲端自動同步(Cloudflare Worker + KV,同步碼,免帳號)
+- [ ] 補齊其餘 11 份歷屆試題
