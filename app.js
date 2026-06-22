@@ -416,6 +416,9 @@ function require_master() { return 1; } // ponytail: 文案用,Leitner 升格規
 function stats() {
   setNav('stats');
   const s = progressStats(DATA.questions, store.q);
+  const cover = s.total ? Math.round((s.practiced / s.total) * 1000) / 10 : 0;
+  const rec = store.recent || [];
+  const recAcc = rec.length ? Math.round((rec.reduce((a, b) => a + b, 0) / rec.length) * 1000) / 10 : null;
   // 各章節(範圍)正確率與掌握度
   const byCh = new Map();
   for (const q of DATA.questions) {
@@ -423,7 +426,7 @@ function stats() {
     const p = store.q[q.id] || {};
     const c = byCh.get(k) || { key: k, total: 0, attempts: 0, correct: 0, mastered: 0 };
     c.total++; c.attempts += p.attempts || 0; c.correct += p.correct || 0;
-    if ((p.box || 1) >= 5) c.mastered++;
+    if (isMastered(p.box)) c.mastered++;
     byCh.set(k, c);
   }
   const chRows = [...byCh.values()].map((x) =>
@@ -447,9 +450,6 @@ function stats() {
   const hist = store.history || {};
   const maxA = Math.max(1, ...days14.map((d) => (hist[d] && hist[d].a) || 0));
   const bars = days14.map((d) => `<div class="bar" style="height:${Math.round((((hist[d] && hist[d].a) || 0) / maxA) * 100)}%" title="${d}:${(hist[d] && hist[d].a) || 0} 題"></div>`).join('');
-  const cover = s.total ? Math.round((s.practiced / s.total) * 1000) / 10 : 0;
-  const rec = store.recent || [];
-  const recAcc = rec.length ? Math.round((rec.reduce((a, b) => a + b, 0) / rec.length) * 1000) / 10 : null;
   view.innerHTML = `
     <section class="card">
       <h2>學習統計</h2>
