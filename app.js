@@ -173,10 +173,27 @@ function dailyChallenge() {
   }
   return picks.map((i) => qs[i]);
 }
-// 今日觀念卡:依日期輪播一張
+// 今日觀念卡:優先挑「你較弱的章節」,逐日輪過你的弱章;沒練過則全站輪播
 function todayConcept() {
   if (!CONCEPTS.length) return null;
   const dayNum = Math.floor(new Date(today() + 'T00:00:00').getTime() / 86400000);
+  const byCh = {};
+  for (const q of DATA.questions) {
+    const p = store.q[q.id]; if (!p) continue;
+    const c = (byCh[q.chapter || q.subject] ||= { attempted: 0, mastered: 0, wrongNow: 0 });
+    if (p.attempts > 0) c.attempted++;
+    if (isMastered(p.box)) c.mastered++;
+    else if (p.wrong > 0) c.wrongNow++;
+  }
+  const weak = Object.entries(byCh)
+    .map(([ch, c]) => ({ ch, score: c.attempted ? c.wrongNow * 2 + (c.attempted - c.mastered) : 0 }))
+    .filter((x) => x.score > 0)
+    .sort((a, b) => b.score - a.score);
+  if (weak.length) {
+    const chosen = weak[dayNum % weak.length].ch;
+    const pool = CONCEPTS.filter((c) => c.chapter === chosen);
+    if (pool.length) return { ...pool[dayNum % pool.length], weak: true };
+  }
   return CONCEPTS[((dayNum % CONCEPTS.length) + CONCEPTS.length) % CONCEPTS.length];
 }
 function shuffle(arr) {
@@ -240,7 +257,7 @@ function home() {
   const cc = todayConcept();
   const conceptCard = cc ? `
     <section class="card concept-card">
-      <div class="ck">今日 AI 觀念${cc.chapter ? ' · ' + esc(cc.chapter) : ''}</div>
+      <div class="ck">今日 AI 觀念${cc.chapter ? ' · ' + esc(cc.chapter) : ''}${cc.weak ? ' · 針對你較弱的範圍' : ''}</div>
       <h3>${esc(cc.title)}</h3>
       <p>${esc(cc.body)}</p>
     </section>` : '';
