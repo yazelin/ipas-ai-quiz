@@ -88,29 +88,55 @@ function setNav(active) {
   document.querySelectorAll('nav button').forEach((b) => b.classList.toggle('on', b.dataset.v === active));
 }
 
+// 範圍 = 章節(若題目尚未分類則退回科目),供「選擇練習範圍」用
+const rangeKey = (q) => q.chapter || q.subject;
+function rangeGroups() {
+  const m = new Map();
+  for (const q of DATA.questions) {
+    const k = rangeKey(q);
+    const g = m.get(k) || { key: k, level: q.level, count: 0 };
+    g.count++; m.set(k, g);
+  }
+  return [...m.values()];
+}
+
 function home() {
   setNav('home');
-  const opts = subjects().map((s) => `<option value="${esc(s)}">${esc(s)}</option>`).join('');
+  const groups = rangeGroups();
+  const byLevel = {};
+  groups.forEach((g) => (byLevel[g.level] ||= []).push(g));
+  const ranges = Object.entries(byLevel).map(([lv, gs]) =>
+    `<div class="range-group"><div class="range-lv">${esc(lv)}</div>${gs.map((g) =>
+      `<label class="range-item"><input type="checkbox" class="rng" value="${esc(g.key)}" checked><span>${esc(g.key)}</span><b>${g.count}</b></label>`).join('')}</div>`).join('');
   view.innerHTML = `
     <section class="card">
       <h2>練習模式</h2>
-      <p class="muted">即時看答案與解析,適合慢慢學。</p>
-      <label>科目
-        <select id="pr-subject"><option value="">全部科目</option>${opts}</select>
-      </label>
+      <p class="muted">即時看答案與解析。勾選要練的範圍,預設全選。</p>
+      <div class="row range-head"><span class="muted" id="range-sum"></span>
+        <span><button id="sel-all">全選</button><button id="sel-none">清除</button></span></div>
+      <div id="ranges">${ranges}</div>
       <label>題數
-        <select id="pr-count"><option>10</option><option>20</option><option value="0">全部</option></select>
+        <select id="pr-count"><option value="10">10</option><option value="20">20</option><option value="0">全部(選取範圍)</option></select>
       </label>
       <button class="primary" id="pr-start">開始練習</button>
     </section>`;
+  const selectedKeys = () => new Set([...view.querySelectorAll('.rng:checked')].map((c) => c.value));
+  const updateSum = () => {
+    const keys = selectedKeys();
+    const n = DATA.questions.filter((q) => keys.has(rangeKey(q))).length;
+    $('#range-sum').textContent = `已選 ${keys.size} 範圍,共 ${n} 題`;
+  };
+  view.querySelectorAll('.rng').forEach((c) => (c.onchange = updateSum));
+  $('#sel-all').onclick = () => { view.querySelectorAll('.rng').forEach((c) => (c.checked = true)); updateSum(); };
+  $('#sel-none').onclick = () => { view.querySelectorAll('.rng').forEach((c) => (c.checked = false)); updateSum(); };
   $('#pr-start').onclick = () => {
-    const subj = $('#pr-subject').value;
+    const keys = selectedKeys();
     const count = +$('#pr-count').value;
-    let pool = DATA.questions.filter((q) => !subj || q.subject === subj);
-    pool = shuffle(pool);
+    let pool = shuffle(DATA.questions.filter((q) => keys.has(rangeKey(q))));
     if (count) pool = pool.slice(0, count);
     runPractice(pool);
   };
+  updateSum();
 }
 
 function runPractice(pool, opts = {}) {
@@ -252,6 +278,18 @@ function require_master() { return 1; } // ponytail: 文案用,Leitner 升格規
 function stats() {
   setNav('stats');
   const s = progressStats(DATA.questions, store.q);
+  // 各章節(範圍)正確率與掌握度
+  const byCh = new Map();
+  for (const q of DATA.questions) {
+    const k = rangeKey(q);
+    const p = store.q[q.id] || {};
+    const c = byCh.get(k) || { key: k, total: 0, attempts: 0, correct: 0, mastered: 0 };
+    c.total++; c.attempts += p.attempts || 0; c.correct += p.correct || 0;
+    if ((p.box || 1) >= 5) c.mastered++;
+    byCh.set(k, c);
+  }
+  const chRows = [...byCh.values()].map((x) =>
+    `<tr><td>${esc(x.key)}</td><td>${x.attempts ? Math.round((x.correct / x.attempts) * 1000) / 10 + '％' : '—'}</td><td>${x.mastered}/${x.total}</td></tr>`).join('');
   view.innerHTML = `
     <section class="card">
       <h2>學習統計</h2>
@@ -261,9 +299,10 @@ function stats() {
         <div><b>${s.wrongNow}</b><span>目前錯題</span></div>
         <div><b>${s.mastered}</b><span>已掌握</span></div>
       </div>
+      <h3>各範圍弱點</h3>
       <table>
-        <tr><th>科目</th><th>正確率</th><th>掌握</th></tr>
-        ${s.subjects.map((x) => `<tr><td>${esc(x.subject)}</td><td>${x.accuracy == null ? '—' : x.accuracy + '％'}</td><td>${x.mastered}/${x.total}</td></tr>`).join('')}
+        <tr><th>範圍</th><th>正確率</th><th>掌握</th></tr>
+        ${chRows}
       </table>
     </section>`;
 }
