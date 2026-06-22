@@ -1,6 +1,6 @@
 // 離線快取:app shell + 題庫。stale-while-revalidate(先給快取、背景更新)。
 // 改版要更新快取時,把 CACHE 版號 +1。
-const CACHE = 'ipas-v6';
+const CACHE = 'ipas-v7';
 const SHELL = ['./', 'index.html', 'app.js', 'core.js', 'manifest.json', 'favicon.svg', 'questions.json', 'concepts.json', 'icon-192.png', 'icon-512.png'];
 
 self.addEventListener('install', (e) => {

@@ -532,6 +532,7 @@ function settings() {
         <select id="rem-hour">${Array.from({ length: 24 }, (_, h) => `<option value="${h}" ${h === remHour ? 'selected' : ''}>${String(h).padStart(2, '0')}:00</option>`).join('')}</select>
       </label>
       <button id="rem-toggle">${pushSupported() ? '載入中…' : '此瀏覽器不支援推播'}</button>
+      <button id="rem-test">傳測試通知</button>
       <span id="rem-msg" class="muted"></span>
 
       <h3>同步碼</h3>
@@ -577,6 +578,14 @@ function settings() {
       btn.disabled = false;
     };
   }
+  if ($('#rem-test')) $('#rem-test').onclick = async () => {
+    $('#rem-msg').textContent = '傳送測試中…';
+    try {
+      const r = await fetch(`${SYNC_URL}/push/test`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code: store.syncCode }) });
+      const j = await r.json().catch(() => ({}));
+      $('#rem-msg').textContent = r.ok ? '已傳送,看通知有沒有跳出' : (j.error === 'not_subscribed' ? '請先「開啟提醒」' : '失敗:' + (j.error || r.status));
+    } catch { $('#rem-msg').textContent = '傳送失敗'; }
+  };
   $('#code-set').onclick = async () => {
     const v = $('#code-in').value.trim();
     if (!v) return;
