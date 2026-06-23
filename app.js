@@ -677,6 +677,10 @@ function settings() {
       <input id="imp" type="file" accept="application/json" hidden>
       <button id="exp-md">匯出筆記（Markdown）</button>
 
+      <h3>重設統計</h3>
+      <p class="muted" style="font-size:13px">把作答統計歸零、重新練到 100%,但<strong>保留你的筆記與星標</strong>。</p>
+      <button id="reset-stats">重設統計(保留筆記與星標)</button>
+
       <h3 class="danger">重設</h3>
       <button class="danger" id="reset">清除本機所有進度</button>
     </section>`;
@@ -762,6 +766,16 @@ function settings() {
   };
   $('#reset').onclick = () => {
     if (confirm('確定清除本機所有作答進度與筆記？')) { store = { v: 1, syncCode: makeCode(), q: {} }; save(); settings(); }
+  };
+  $('#reset-stats').onclick = () => {
+    if (!confirm('重設統計?掌握度、正確率、錯題本、打卡、趨勢都歸零;保留筆記、星標與設定。')) return;
+    for (const id in store.q) {
+      const p = store.q[id];
+      if (p.note || p.starred) store.q[id] = { box: 1, attempts: 0, correct: 0, wrong: 0, note: p.note || '', starred: !!p.starred };
+      else delete store.q[id];
+    }
+    store.recent = []; store.history = {}; store.streak = { count: 0, lastDate: '' }; store.daily = null;
+    save(); settings();
   };
 }
 
