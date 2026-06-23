@@ -1,0 +1,32 @@
+name: 意見回饋 / 問題回報
+description: 功能建議、操作/UX 問題、網站 bug,或非特定題目的回饋
+title: "[回饋] "
+labels: ["feedback"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        想回報「某一題答案有誤」?請直接在該題卡點「這題有誤?」,會自動帶入題號。這份表單用於一般意見與網站問題。
+  - type: dropdown
+    id: kind
+    attributes:
+      label: 類型
+      options:
+        - 功能建議
+        - 操作 / UX 問題
+        - 網站 bug
+        - 其他
+    validations:
+      required: true
+  - type: textarea
+    id: detail
+    attributes:
+      label: 內容
+      description: 越具體越好(在哪個畫面、怎麼操作、預期與實際差在哪)
+    validations:
+      required: true
+  - type: input
+    id: env
+    attributes:
+      label: 裝置 / 瀏覽器(選填)
+      placeholder: 例如 iPhone Safari、Windows Chrome
