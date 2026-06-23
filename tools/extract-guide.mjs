@@ -1,6 +1,6 @@
 import fs from 'fs';
-// 先在「第N章 running header」與「附件/參考書目」截斷(pdftotext -layout 會把這些併進同行或接在答案區後),再做盤古之白
-const clean=s=>{ if(!s)return s; const m=s.search(/第[一二三四五六七八九十百]+章|附件|參考書目|參考文獻/); if(m>=0)s=s.slice(0,m);
+// 先在「第N章 running header」「附件/參考書目」「私有區框框字(PUA,如 U+F07D)」截斷(pdftotext -layout 會把這些併進同行或接在答案區後),再做盤古之白
+const clean=s=>{ if(!s)return s; const m=s.search(/第[一二三四五六七八九十百]+章|附件|參考書目|參考文獻|[-]/); if(m>=0)s=s.slice(0,m);
   return s.replace(/([一-鿿])\s+([一-鿿])/g,'$1$2').replace(/([一-鿿])\s+([一-鿿])/g,'$1$2').replace(/([一-鿿])([A-Za-z0-9])/g,'$1 $2').replace(/([A-Za-z0-9])([一-鿿])/g,'$1 $2').replace(/\s{2,}/g,' ').trim(); };
 const [,, file, level, subjShort, subjFull] = process.argv;
 const raw = fs.readFileSync(file,'utf8');
