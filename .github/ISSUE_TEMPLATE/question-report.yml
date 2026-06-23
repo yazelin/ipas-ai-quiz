@@ -1,0 +1,42 @@
+name: 題目回報
+description: 回報題庫答案錯誤、選項缺漏或解析有誤
+title: "[題目回報] "
+labels: ["question-report"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感謝幫忙把題庫養乾淨。從題卡的「這題有誤?」點進來時,題號會自動帶入。
+  - type: input
+    id: qid
+    attributes:
+      label: 題號
+      description: 題目 id(從題卡點進來會自動填);手動回報請填,例如 115-1-b-s1-q3
+      placeholder: 115-1-b-s1-q3
+    validations:
+      required: true
+  - type: input
+    id: subject
+    attributes:
+      label: 科目(選填)
+      placeholder: "科目1:人工智慧基礎概論"
+  - type: dropdown
+    id: kind
+    attributes:
+      label: 問題類型
+      options:
+        - 正解標錯
+        - 選項文字有誤或缺漏
+        - 題幹抽錯行 / 有亂碼
+        - 解析有誤
+        - 其他
+    validations:
+      required: true
+  - type: textarea
+    id: detail
+    attributes:
+      label: 說明
+      description: 哪裡怪?你認為正確答案是什麼?(附官方依據更好)
+      placeholder: "例如:這題正解應該是 (C);官方答案公告第 12 題標 C。"
+    validations:
+      required: true

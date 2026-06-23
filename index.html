@@ -42,14 +42,16 @@
   nav button { border:0; background:none; padding:8px 12px; border-radius:8px; color:var(--c-muted); font-size:15px; cursor:pointer; }
   nav button.on { background:var(--c-card); color:var(--c-accent); font-weight:600; box-shadow:0 1px 2px rgba(0,0,0,.06); }
   main { max-width:720px; margin:0 auto; padding:8px 12px 48px; }
-  .card { background:var(--c-card); border:1px solid var(--c-line); border-radius:14px; padding:20px; margin-bottom:16px; }
+  .card { background:var(--c-card); border:1px solid var(--c-line); border-radius:14px; padding:20px; margin-bottom:16px; animation:card-in .18s ease both; }
+  @keyframes card-in { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
   h2 { margin-top:0; }
   .muted { color:var(--c-muted); }
   label { display:block; margin:12px 0 4px; font-size:14px; }
   select, input, textarea { width:100%; padding:10px; border:1px solid var(--c-line); border-radius:8px; font-size:15px; font-family:inherit; }
   button.primary { background:var(--c-accent); color:#fff; border:0; padding:12px 18px; border-radius:10px; font-size:16px; cursor:pointer; margin-top:14px; }
   .card > button:not(.primary) { background:#eef0f3; border:0; padding:10px 14px; border-radius:8px; font-size:14px; cursor:pointer; margin:8px 8px 0 0; }
-  .opt { display:block; width:100%; text-align:left; padding:12px 14px; margin:8px 0; border:1px solid var(--c-line); border-radius:10px; background:#fff; font-size:15px; cursor:pointer; }
+  .opt { display:block; width:100%; text-align:left; padding:12px 14px; margin:8px 0; border:1px solid var(--c-line); border-radius:10px; background:#fff; font-size:15px; cursor:pointer; transition:background .12s, border-color .12s, transform .06s; }
+  .opt:active { transform:scale(.99); }
   .opt:hover { border-color:var(--c-accent); }
   .opt.correct { border-color:var(--c-ok); background:#f0fdf4; }
   .opt.wrong { border-color:var(--c-bad); background:#fef2f2; }
@@ -108,6 +110,7 @@
   .code { font-family:ui-monospace,monospace; font-size:20px; background:#f8fafc; padding:10px; border-radius:8px; text-align:center; letter-spacing:1px; }
   h3.danger, button.danger { color:var(--c-bad); }
   button.danger { border:1px solid var(--c-bad)!important; background:#fff!important; }
+  @media (prefers-reduced-motion: reduce) { .card { animation:none; } .opt { transition:none; } .opt:active { transform:none; } }
 </style>
 </head>
 <body>
@@ -130,7 +133,7 @@
   <footer class="site-footer">
     <nav>
       <a href="https://github.com/yazelin/ipas-ai-quiz/discussions" target="_blank" rel="noopener">考生討論區</a>
-      <a href="https://github.com/yazelin/ipas-ai-quiz/issues/new?labels=question-report&title=%5B%E9%A1%8C%E7%9B%AE%E5%9B%9E%E5%A0%B1%5D" target="_blank" rel="noopener">回報題目</a>
+      <a href="https://github.com/yazelin/ipas-ai-quiz/issues/new?template=question-report.yml" target="_blank" rel="noopener">回報題目</a>
       <a href="https://github.com/yazelin/ipas-ai-quiz" target="_blank" rel="noopener">GitHub 原始碼</a>
       <a href="https://www.facebook.com/yaze.lin.gm" target="_blank" rel="noopener">Facebook</a>
       <a href="https://buymeacoffee.com/yazelin" target="_blank" rel="noopener">請我喝咖啡</a>
