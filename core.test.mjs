@@ -41,11 +41,16 @@ const s1 = st.subjects.find((s) => s.subject === 'S1');
 assert.equal(s1.accuracy, 71.4); // 5 correct / 7 attempts
 assert.deepEqual(wrongQuestionIds(qs, prog), ['b']);
 
-// markdown 匯出(只收星標)
+// markdown 匯出(收星標)
 const md = toMarkdown(qs, { c: { starred: true, note: '記得 RAG' } });
 assert.ok(md.includes('[S2]'));
 assert.ok(md.includes('正解：y'));
 assert.ok(md.includes('我的筆記：記得 RAG'));
-assert.ok(!md.includes('qa'), '沒星標的不該出現');
+assert.ok(!md.includes('qa'), '沒星標也沒筆記的不該出現');
+
+// 有筆記但沒星標也要收(筆記不漏)
+const md2 = toMarkdown(qs, { a: { note: '只有筆記沒星標' } });
+assert.ok(md2.includes('只有筆記沒星標'), '有筆記就該收');
+assert.ok(md2.includes('qa'));
 
 console.log('PASS');
