@@ -702,11 +702,25 @@ function settings() {
   };
 }
 
+// 從 UA 粗略判斷裝置/瀏覽器,給「意見回饋」表單預填(僅 OS + 瀏覽器名,不含版本)
+function deviceLabel() {
+  const ua = navigator.userAgent;
+  const os = /iPhone/.test(ua) ? 'iPhone' : /iPad/.test(ua) ? 'iPad' : /Android/.test(ua) ? 'Android'
+    : /Windows/.test(ua) ? 'Windows' : /Macintosh|Mac OS X/.test(ua) ? 'Mac' : /Linux/.test(ua) ? 'Linux' : '其他';
+  const br = /Edg\//.test(ua) ? 'Edge' : /SamsungBrowser/.test(ua) ? 'Samsung Internet'
+    : /CriOS|Chrome\//.test(ua) ? 'Chrome' : /FxiOS|Firefox\//.test(ua) ? 'Firefox'
+    : /Version\/[\d.]+.*Safari/.test(ua) ? 'Safari' : '瀏覽器';
+  return `${os} · ${br}`;
+}
+
 const ROUTES = { home, mock: mockSetup, wrong: wrongbook, notes, stats, settings };
 
 // ---- boot ----
 async function boot() {
   document.querySelectorAll('nav button').forEach((b) => (b.onclick = () => ROUTES[b.dataset.v]()));
+  // 「意見回饋」連結自動帶入裝置/瀏覽器(GitHub issue form 以 &env= 預填同名欄位)
+  const fbLink = document.getElementById('fb-link');
+  if (fbLink) fbLink.href += `&env=${encodeURIComponent(deviceLabel())}`;
   if (isStandalone() || installBarOff()) { const b = document.getElementById('installbar'); if (b) b.hidden = true; }
   const ib = document.getElementById('install-btn');
   if (ib) ib.onclick = async () => {
