@@ -1,10 +1,20 @@
 // 離線快取:app shell + 題庫。stale-while-revalidate(先給快取、背景更新)。
 // 改版要更新快取時,把 CACHE 版號 +1。
-const CACHE = 'ipas-v29';
+const CACHE = 'ipas-v30';
 const SHELL = ['./', 'index.html', 'app.js', 'core.js', 'manifest.json', 'favicon.svg', 'questions.json', 'concepts.json', 'exam-dates.json', 'icon-192.png', 'icon-512.png'];
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));
+  e.waitUntil((async () => {
+    const c = await caches.open(CACHE);
+    await c.addAll(SHELL); // 核心檔:原子,任一失敗則安裝失敗(本來就該齊)
+    // 帶圖題的圖:從 questions.json 撈出 best-effort 預載,離線也看得到圖;壞一張不影響其他
+    try {
+      const q = await (await (await c.match('questions.json')) || await fetch('questions.json')).json();
+      const imgs = [...new Set(q.questions.filter((x) => x.image).map((x) => x.image))];
+      await Promise.allSettled(imgs.map((u) => fetch(u).then((r) => r.ok && c.put(u, r))));
+    } catch {}
+    await self.skipWaiting();
+  })());
 });
 self.addEventListener('activate', (e) => {
   e.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => k !== CACHE).map((k) => caches.delete(k)))).then(() => self.clients.claim()));

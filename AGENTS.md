@@ -41,7 +41,7 @@
       "options": ["A選項", "B選項", "C選項", "D選項"],  // 必須剛好 4 個
       "answer": 2,                  // 正解的 0-based 索引:A=0 B=1 C=2 D=3
       "explanation": "詳解…",        // 為何對 + 為何其他錯 + 概念
-      "image": "assets/<id>.png",   // 選填:帶圖題才有,檔名一律 = 題目 id
+      "image": "assets/<id>.webp",  // 選填:帶圖題才有,檔名一律 = 題目 id(WebP lossless)
       "source": "學習指引"           // 選填:來源。缺省=歷屆考古題;"學習指引"=官方學習指引範例題(id 以 lg- 開頭、答案與解析皆官方)
     }
   ]
@@ -55,7 +55,7 @@ node core.test.mjs                                                   # 驗邏輯
 python3 -m http.server 8000                                          # 開 http://localhost:8000 看
 ```
 - `chapter` 請沿用既有的(統計頁/範圍選單會自動多出該組);不填則以 `subject` 當範圍。
-- 帶圖題:圖放 `assets/`,**檔名一律命名為 `<題目 id>.png`**(例如題 `114-2-m-s3-f1` → `assets/114-2-m-s3-f1.png`),`image` 欄填 `assets/<id>.png`。看 id 就知道圖、看圖就知道哪題,別沿用原始 PDF 的圖片序號(早期 114-2 沒這樣做,踩過坑)。**不要把含「答案欄」的整頁截圖放進去**(會洩答案)——只放圖本身。
+- 帶圖題:圖放 `assets/`,**檔名一律命名為 `<題目 id>.webp`**(WebP lossless,例如 `assets/114-2-m-s3-f1.webp`),`image` 欄填 `assets/<id>.webp`。看 id 就知道圖、看圖就知道哪題,別沿用原始 PDF 的圖片序號(早期 114-2 沒這樣做,踩過坑)。**不要把含「答案欄」的整頁截圖放進去**(會洩答案)——只放圖本身。
 - **題幹若寫「附圖/如圖/下圖」就一定要有 `image`**(歷史教訓:q39 抽圖時漏掛,題目變成無法判讀)。加完用 `node tools/check-questions.mjs` 驗。
 
 ### 用 CLI 批次加題(推薦,別手改大 JSON)
@@ -119,7 +119,7 @@ python3 -m http.server 8000        # 本機開站(fetch 需要 http,不能 file:
 ### 慣例(加題/加梯次務必遵守,`check-questions.mjs` 會擋)
 
 - **中文標點全形**:`,;:?` 在中文語境用全形 `,;:?`,中文外層括號用全形 `（ ）`;**夾純英文的括號維持半形**(如 `(LSTM)`、`(B)`、`P(y|x)`)。
-- **圖檔名 = 題目 id**:`assets/<id>.png`,不沿用原始 PDF 圖號。
+- **圖檔名 = 題目 id**:`assets/<id>.webp`(WebP lossless,SW 會自動預載供離線),不沿用原始 PDF 圖號。
 - **題幹提到圖就要有 `image`**。
 
 ## 禁區 / 注意
