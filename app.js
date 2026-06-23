@@ -195,7 +195,7 @@ function dailyChallenge() {
   }
   return picks.map((i) => qs[i]);
 }
-// 今日觀念卡：優先挑「你較弱的章節」，逐日輪過你的弱章；沒練過則全站輪播
+// 今日觀念卡：優先挑「你還沒掌握的章節」(錯題 + 練過未掌握)，逐日輪過；沒練過則全站輪播
 function todayConcept() {
   if (!CONCEPTS.length) return null;
   const dayNum = Math.floor(new Date(today() + 'T00:00:00').getTime() / 86400000);
@@ -280,7 +280,7 @@ function home() {
   const cc = todayConcept();
   const conceptCard = cc ? `
     <section class="card concept-card">
-      <div class="ck">今日 AI 觀念${cc.chapter ? ' · ' + esc(cc.chapter) : ''}${cc.weak ? ' · 針對你較弱的範圍' : ''}</div>
+      <div class="ck">今日 AI 觀念${cc.chapter ? ' · ' + esc(cc.chapter) : ''}${cc.weak ? ' · 針對你還沒掌握的範圍' : ''}</div>
       <h3>${esc(cc.title)}</h3>
       <p>${esc(cc.body)}</p>
     </section>` : '';
