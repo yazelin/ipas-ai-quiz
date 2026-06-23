@@ -295,6 +295,7 @@ function home() {
         <select id="pr-count"><option value="10">10</option><option value="20">20</option><option value="0">全部（選取範圍）</option></select>
       </label>
       <button class="primary" id="pr-start">開始練習</button>
+      <button id="pr-images">只練看圖題（${DATA.questions.filter((q) => q.image).length} 題,全中級）</button>
     </section>`;
   const selectedKeys = () => new Set([...view.querySelectorAll('.rng:checked')].map((c) => c.value));
   const kw = () => $('#pr-kw').value.trim().toLowerCase();
@@ -328,6 +329,7 @@ function home() {
     if (count) pool = pool.slice(0, count);
     runPractice(pool);
   };
+  $('#pr-images').onclick = () => runPractice(shuffle(DATA.questions.filter((q) => q.image)));
   $('#challenge').onclick = () => { store.challengeDone = today(); save(); runPractice(dailyChallenge()); };
   $('#share').onclick = async () => {
     const txt = `我在 iPAS AI 應用規劃師模擬考刷題：連續打卡 ${strk} 天、今日 ${dc}/${g} 題。一起來練歷屆考古題！`;
