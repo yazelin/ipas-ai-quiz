@@ -9,6 +9,7 @@ const view = $('#view');
 
 let DATA = { meta: {}, questions: [] };
 let CONCEPTS = [];
+let EXAMINFO = null;
 let store = load();
 let pushTimer = null;
 
@@ -591,6 +592,21 @@ function stats() {
     </section>`;
 }
 
+// 官方考試資訊小區塊:及格標準(穩定)+ 各級下次考試日期一鍵填入(非強制,初級中級日期不同)
+function examInfoHtml() {
+  if (!EXAMINFO) return '';
+  const t = today();
+  const next = (arr) => (arr || []).filter((d) => d >= t).sort()[0];
+  const picks = Object.entries(EXAMINFO.exams || {})
+    .map(([lv, arr]) => { const d = next(arr); return d ? `<button class="exam-pick" data-d="${d}">下次${esc(lv)} ${d}</button>` : ''; })
+    .join('');
+  return `<div class="guide" style="white-space:normal">
+    ${EXAMINFO.pass ? `<p style="margin:0 0 6px">${esc(EXAMINFO.pass)}</p>` : ''}
+    ${picks ? `<div style="margin-bottom:6px">一鍵設為倒數日期(初級/中級日期不同,自己選):<br>${picks}</div>` : ''}
+    <a href="https://ipd.nat.gov.tw/ipas/certification/AIAP/exam-info" target="_blank" rel="noopener">官方考試資訊 ↗</a>
+  </div>`;
+}
+
 function settings() {
   setNav('settings');
   if (SYNC_URL) pushSync(); // 打開設定頁就把最新進度上傳，確保拿碼去別台時雲端已是最新
@@ -610,6 +626,7 @@ function settings() {
       <label>考試日期（首頁倒數用）
         <input id="set-exam" type="date" value="${(store.settings && store.settings.examDate) || ''}">
       </label>
+      ${examInfoHtml()}
 
       <h3>每日提醒（推播）</h3>
       <p class="muted">到設定時間若今天還沒練，會推播提醒你刷題。iPhone 需先把本站「加到主畫面」，並從安裝後的 App 開啟才收得到。</p>
@@ -661,6 +678,10 @@ function settings() {
   }
   $('#set-goal').onchange = (e) => { store.settings ||= {}; store.settings.dailyGoal = Math.max(1, +e.target.value || 20); save(); };
   $('#set-exam').onchange = (e) => { store.settings ||= {}; store.settings.examDate = e.target.value; save(); };
+  view.querySelectorAll('.exam-pick').forEach((b) => (b.onclick = () => {
+    store.settings ||= {}; store.settings.examDate = b.dataset.d; save();
+    $('#set-exam').value = b.dataset.d;
+  }));
   if ($('#rem-hour')) $('#rem-hour').onchange = async (e) => {
     store.settings ||= {}; store.settings.reminderHour = +e.target.value; save();
     if (await pushIsOn()) { await enablePush(+e.target.value); $('#rem-msg').textContent = '提醒時間已更新'; }
@@ -758,6 +779,7 @@ async function boot() {
     return;
   }
   try { CONCEPTS = ((await (await fetch('concepts.json')).json()).cards) || []; } catch { CONCEPTS = []; }
+  try { EXAMINFO = await (await fetch('exam-dates.json')).json(); } catch { EXAMINFO = null; }
   if (DATA.meta?.title) $('#title').textContent = DATA.meta.title;
   if (DATA.meta?.note) { const n = $('#banner'); n.textContent = DATA.meta.note; n.hidden = false; }
   localStorage.setItem(STORE_KEY, JSON.stringify(store)); // 落地可能新生成的 syncCode(不動 updatedAt)
