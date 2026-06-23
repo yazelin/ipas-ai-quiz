@@ -3,3 +3,5 @@ node_modules/
 pdfs/
 worker/.wrangler/
 worker/node_modules/
+resource-change.md
+resource-change-title.txt

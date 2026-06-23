@@ -1,0 +1,40 @@
+name: 監看 IPAS 學習資源
+
+on:
+  schedule:
+    - cron: '0 1 * * *'   # 每天 01:00 UTC = 09:00 台北(GitHub 排程可能延遲數十分鐘)
+  workflow_dispatch:        # 也可手動觸發
+
+permissions:
+  contents: write   # 更新快照 commit 回 repo
+  issues: write     # 有變動開 issue
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 檢查資源頁是否有變動
+        id: check
+        run: node tools/check-resources.mjs --write
+
+      - name: 有變動就開 issue 通知
+        if: steps.check.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh label create resource-update --color FBCA04 --description "IPAS 資源頁變動" 2>/dev/null || true
+          gh issue create --title "$(cat resource-change-title.txt)" --body-file resource-change.md --label resource-update
+
+      - name: 有變動就把新快照 commit 回去
+        if: steps.check.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tools/resources-snapshot.json
+          git commit -m "chore(watch): 更新 IPAS 資源快照 [skip ci]"
+          git push
