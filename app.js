@@ -168,11 +168,11 @@ function guideLine(q) {
   const link = url ? ` <a href="${esc(url)}" target="_blank" rel="noopener">開啟學習指引 ↗</a>` : '';
   return `<p class="guide">教材對應：${esc(q.subject)} ${ch}${link}</p>`;
 }
-// 回報這題（開 GitHub issue，帶好題目 id）
+// 回報這題：開 GitHub issue form,自動帶入題號與科目
 function reportLink(q) {
-  const title = encodeURIComponent(`[題目回報] ${q.id}`);
-  const body = encodeURIComponent(`題目 ID:${q.id}\n科目：${q.subject}\n\n我覺得這題有問題（請描述，例如答案/選項/解析有誤）:\n`);
-  return `<p class="report-line"><a href="https://github.com/yazelin/ipas-ai-quiz/issues/new?labels=question-report&title=${title}&body=${body}" target="_blank" rel="noopener">這題有誤？回報給作者</a></p>`;
+  const url = `https://github.com/yazelin/ipas-ai-quiz/issues/new?template=question-report.yml`
+    + `&qid=${encodeURIComponent(q.id)}&subject=${encodeURIComponent(q.subject)}`;
+  return `<p class="report-line"><a href="${url}" target="_blank" rel="noopener">這題有誤？回報給作者</a></p>`;
 }
 // 今日挑戰：用日期當種子，固定挑 3 題（每天不同、當天穩定）
 function dailyChallenge() {
@@ -412,10 +412,11 @@ function runMock(pool, mins) {
   const answers = new Array(pool.length).fill(null);
   let i = 0;
   let remaining = mins * 60;
+  const fmt = () => `${String((remaining / 60) | 0).padStart(2, '0')}:${String(remaining % 60).padStart(2, '0')}`;
   const timer = setInterval(() => {
     remaining--;
     const t = $('#timer');
-    if (t) t.textContent = `${String((remaining / 60) | 0).padStart(2, '0')}:${String(remaining % 60).padStart(2, '0')}`;
+    if (t) t.textContent = fmt();
     if (remaining <= 0) { clearInterval(timer); submit(); }
   }, 1000);
 
@@ -423,7 +424,7 @@ function runMock(pool, mins) {
     const q = pool[i];
     view.innerHTML = `
       <section class="card">
-        <div class="row"><span class="muted">${i + 1} / ${pool.length}</span><span id="timer" class="timer">--:--</span></div>
+        <div class="row"><span class="muted">${i + 1} / ${pool.length}</span><span id="timer" class="timer">${fmt()}</span></div>
         <p class="qmeta muted">${esc(q.subject)}</p>
         <h3>${esc(q.question)}</h3>
         ${q.image ? `<img class="qfig" src="${esc(q.image)}" alt="題目附圖" loading="lazy">` : ''}
@@ -434,7 +435,11 @@ function runMock(pool, mins) {
           ${i + 1 < pool.length ? '<button id="next">下一題</button>' : '<button class="primary" id="submit">交卷</button>'}
         </div>
       </section>`;
-    view.querySelectorAll('.opt').forEach((b) => (b.onclick = () => { answers[i] = +b.dataset.k; render(); }));
+    // 點選項只切換 picked class,不整卡重 render(否則 #timer 被重建會閃 --:--)
+    view.querySelectorAll('.opt').forEach((b) => (b.onclick = () => {
+      answers[i] = +b.dataset.k;
+      view.querySelectorAll('.opt').forEach((x) => x.classList.toggle('picked', +x.dataset.k === answers[i]));
+    }));
     if ($('#prev')) $('#prev').onclick = () => { i--; render(); };
     if ($('#next')) $('#next').onclick = () => { i++; render(); };
     if ($('#submit')) $('#submit').onclick = submit;
@@ -605,8 +610,8 @@ function settings() {
       insBtn.disabled = true;
       insBtn.textContent = '由瀏覽器選單安裝';
       insMsg.textContent = /iphone|ipad|ipod/i.test(navigator.userAgent)
-        ? '(iPhone:Safari 分享鈕 → 加入主畫面)'
-        : '(Chrome ⋮ 選單 → 安裝應用程式 / 加到主畫面)';
+        ? '（iPhone:Safari 分享鈕 → 加入主畫面）'
+        : '（Chrome ⋮ 選單 → 安裝應用程式 / 加到主畫面）';
     }
   }
   $('#set-goal').onchange = (e) => { store.settings ||= {}; store.settings.dailyGoal = Math.max(1, +e.target.value || 20); save(); };

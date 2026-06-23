@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: 考生討論 / 一般問題
+    url: https://github.com/yazelin/ipas-ai-quiz/discussions
+    about: 想跟其他考生交流,或非「題目錯誤」的問題,請到討論區。
