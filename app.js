@@ -1,7 +1,7 @@
 import { nextBox, isMastered, scoreExam, progressStats, wrongQuestionIds, toMarkdown, reviewPriority, MASTER_BOX } from './core.js';
 
 const STORE_KEY = 'ipas_quiz_progress';
-// 部署 Cloudflare Worker 後填入,例如 'https://ipas-quiz-sync.你的帳號.workers.dev'。留空=只用本機。
+// 部署 Cloudflare Worker 後填入，例如 'https://ipas-quiz-sync.你的帳號.workers.dev'。留空=只用本機。
 const SYNC_URL = 'https://ipas-quiz-sync.yazelinj303.workers.dev';
 const VAPID_PUBLIC = 'BNn4Lwq818aHx8cb0LrcQ6IpRgHb9B3P_BOqusct-uFyJPQ4hlDrIOirliHoNdbbg5tg8zWfzBg5SZ0yBhRq7zA';
 const $ = (sel) => document.querySelector(sel);
@@ -12,8 +12,8 @@ let CONCEPTS = [];
 let store = load();
 let pushTimer = null;
 
-// PWA 安裝:接管 beforeinstallprompt,顯示自家「安裝」按鈕(Android/桌面 Chrome)
-// 用單機旗標記住「已關掉/已安裝」就別再顯示(install 狀態每台不同,故不進同步 store)
+// PWA 安裝：接管 beforeinstallprompt，顯示自家「安裝」按鈕（Android/桌面 Chrome）
+// 用單機旗標記住「已關掉/已安裝」就別再顯示（install 狀態每台不同，故不進同步 store）
 let deferredInstall = null;
 const isStandalone = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
 const installBarOff = () => localStorage.getItem('ipas_installbar_off') === '1';
@@ -34,7 +34,7 @@ function load() {
   } catch {}
   return { v: 1, syncCode: makeCode(), q: {}, recent: [], updatedAt: 0 };
 }
-// 記一筆最近作答結果(1/0),保留最近 50 筆,供「近期正確率」
+// 記一筆最近作答結果(1/0)，保留最近 50 筆，供「近期正確率」
 function logRecent(correct) {
   (store.recent ||= []).push(correct ? 1 : 0);
   if (store.recent.length > 50) store.recent = store.recent.slice(-50);
@@ -83,7 +83,7 @@ const today = () => ymd(new Date());
 const yesterday = () => { const d = new Date(); d.setDate(d.getDate() - 1); return ymd(d); };
 const dailyGoal = () => (store.settings && store.settings.dailyGoal) || 20;
 const todayCount = () => (store.daily && store.daily.date === today() ? store.daily.count : 0);
-// 顯示用的連續天數:最後達標日是今天或昨天才還活著,否則歸 0
+// 顯示用的連續天數：最後達標日是今天或昨天才還活著，否則歸 0
 function liveStreak() {
   const s = store.streak; if (!s || !s.lastDate) return 0;
   return (s.lastDate === today() || s.lastDate === yesterday()) ? s.count : 0;
@@ -93,13 +93,13 @@ function daysUntilExam() {
   const diff = Math.ceil((new Date(e + 'T00:00:00') - new Date(today() + 'T00:00:00')) / 86400000);
   return diff;
 }
-// 每答一題呼叫:累加今日題數、記每日歷史、達標當下更新打卡
+// 每答一題呼叫：累加今日題數、記每日歷史、達標當下更新打卡
 function bumpDaily(correct) {
   const t = today();
   store.settings ||= { dailyGoal: 20, examDate: '' };
   if (!store.daily || store.daily.date !== t) store.daily = { date: t, count: 0 };
   store.daily.count++;
-  // 每日歷史(答題數/答對數),保留最近 30 天
+  // 每日歷史（答題數/答對數），保留最近 30 天
   store.history ||= {};
   const h = (store.history[t] ||= { a: 0, c: 0 });
   h.a++; if (correct) h.c++;
@@ -116,11 +116,11 @@ function save() {
   schedulePush();
 }
 
-// ---- 雲端同步(同步碼,免帳號) ----
+// ---- 雲端同步（同步碼，免帳號） ----
 function schedulePush() {
   if (!SYNC_URL) return;
   clearTimeout(pushTimer);
-  pushTimer = setTimeout(pushSync, 5000); // ponytail: debounce 5s,夠快又不會每題寫一次 KV
+  pushTimer = setTimeout(pushSync, 5000); // ponytail: debounce 5s，夠快又不會每題寫一次 KV
 }
 async function pushSync() {
   clearTimeout(pushTimer); pushTimer = null;
@@ -160,21 +160,21 @@ function makeCode() {
 const subjects = () => [...new Set(DATA.questions.map((q) => q.subject))];
 const papers = () => [...new Set(DATA.questions.map((q) => `${q.level}｜${q.round}｜${q.subject}`))];
 const esc = (s) => String(s).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
-// 教材對應:指到該題所屬科目的學習指引章節 + 開啟官方 PDF
+// 教材對應：指到該題所屬科目的學習指引章節 + 開啟官方 PDF
 function guideLine(q) {
   const url = DATA.meta && DATA.meta.guides && DATA.meta.guides[q.subject];
   if (!url && !q.chapter) return '';
   const ch = q.chapter ? `—『${esc(q.chapter)}』章` : '';
   const link = url ? ` <a href="${esc(url)}" target="_blank" rel="noopener">開啟學習指引 ↗</a>` : '';
-  return `<p class="guide">教材對應:${esc(q.subject)} ${ch}${link}</p>`;
+  return `<p class="guide">教材對應：${esc(q.subject)} ${ch}${link}</p>`;
 }
-// 回報這題(開 GitHub issue,帶好題目 id)
+// 回報這題（開 GitHub issue，帶好題目 id）
 function reportLink(q) {
   const title = encodeURIComponent(`[題目回報] ${q.id}`);
-  const body = encodeURIComponent(`題目 ID:${q.id}\n科目:${q.subject}\n\n我覺得這題有問題(請描述,例如答案/選項/解析有誤):\n`);
-  return `<p class="report-line"><a href="https://github.com/yazelin/ipas-ai-quiz/issues/new?labels=question-report&title=${title}&body=${body}" target="_blank" rel="noopener">這題有誤?回報給作者</a></p>`;
+  const body = encodeURIComponent(`題目 ID:${q.id}\n科目：${q.subject}\n\n我覺得這題有問題（請描述，例如答案/選項/解析有誤）:\n`);
+  return `<p class="report-line"><a href="https://github.com/yazelin/ipas-ai-quiz/issues/new?labels=question-report&title=${title}&body=${body}" target="_blank" rel="noopener">這題有誤？回報給作者</a></p>`;
 }
-// 今日挑戰:用日期當種子,固定挑 3 題(每天不同、當天穩定)
+// 今日挑戰：用日期當種子，固定挑 3 題（每天不同、當天穩定）
 function dailyChallenge() {
   const qs = DATA.questions; if (!qs.length) return [];
   let seed = 0; for (const ch of today()) seed = (seed * 31 + ch.charCodeAt(0)) >>> 0;
@@ -187,7 +187,7 @@ function dailyChallenge() {
   }
   return picks.map((i) => qs[i]);
 }
-// 今日觀念卡:優先挑「你較弱的章節」,逐日輪過你的弱章;沒練過則全站輪播
+// 今日觀念卡：優先挑「你較弱的章節」，逐日輪過你的弱章；沒練過則全站輪播
 function todayConcept() {
   if (!CONCEPTS.length) return null;
   const dayNum = Math.floor(new Date(today() + 'T00:00:00').getTime() / 86400000);
@@ -230,7 +230,7 @@ function setNav(active) {
   document.querySelectorAll('nav button').forEach((b) => b.classList.toggle('on', b.dataset.v === active));
 }
 
-// 範圍 = 章節(若題目尚未分類則退回科目),供「選擇練習範圍」用
+// 範圍 = 章節（若題目尚未分類則退回科目），供「選擇練習範圍」用
 const rangeKey = (q) => q.chapter || q.subject;
 function rangeGroups() {
   const m = new Map();
@@ -257,7 +257,7 @@ function home() {
       <div class="daily">
         <div><b class="${goalHit ? 'hit' : ''}">${dc}/${g}</b><span>今日題數${goalHit ? ' ✓' : ''}</span></div>
         <div><b>${strk}</b><span>連續天數</span></div>
-        ${du != null ? `<div><b>${du < 0 ? '—' : du}</b><span>${du < 0 ? '考試已過' : '距考試(天)'}</span></div>` : ''}
+        ${du != null ? `<div><b>${du < 0 ? '—' : du}</b><span>${du < 0 ? '考試已過' : '距考試（天）'}</span></div>` : ''}
       </div>
       <button id="share">分享進度</button>
     </section>`;
@@ -266,7 +266,7 @@ function home() {
     <section class="card">
       <div class="row"><h3 style="margin:0">今日挑戰 ${chDone ? '✓ 已完成' : '3 題'}</h3>
         <button class="primary" id="challenge" style="margin:0;padding:8px 14px">${chDone ? '再做一次' : '開始'}</button></div>
-      <p class="muted" style="margin:6px 0 0">每天 3 題,養成每日刷題的習慣。</p>
+      <p class="muted" style="margin:6px 0 0">每天 3 題，養成每日刷題的習慣。</p>
     </section>`;
   const cc = todayConcept();
   const conceptCard = cc ? `
@@ -278,21 +278,21 @@ function home() {
   view.innerHTML = `${dailyStrip}${challengeCard}${conceptCard}
     <section class="card">
       <h2>練習模式</h2>
-      <p class="muted">即時看答案與解析。勾選要練的範圍,預設全選。</p>
+      <p class="muted">即時看答案與解析。勾選要練的範圍，預設全選。</p>
       <div class="row range-head"><span class="muted" id="range-sum"></span>
         <span><button id="sel-all">全選</button><button id="sel-none">清除</button></span></div>
       <div id="ranges">${ranges}</div>
-      <label>關鍵字(選填)
+      <label>關鍵字（選填）
         <input id="pr-kw" placeholder="例如 RAG、特徵工程、Transformer">
       </label>
       <label>出題方式
         <select id="pr-mode">
-          <option value="smart">智慧複習(優先錯題與沒做過的)</option>
+          <option value="smart">智慧複習（優先錯題與沒做過的）</option>
           <option value="random">隨機</option>
         </select>
       </label>
       <label>題數
-        <select id="pr-count"><option value="10">10</option><option value="20">20</option><option value="0">全部(選取範圍)</option></select>
+        <select id="pr-count"><option value="10">10</option><option value="20">20</option><option value="0">全部（選取範圍）</option></select>
       </label>
       <button class="primary" id="pr-start">開始練習</button>
     </section>`;
@@ -309,7 +309,7 @@ function home() {
   };
   const updateSum = () => {
     const keys = selectedKeys();
-    $('#range-sum').textContent = `已選 ${keys.size} 範圍,共 ${pickPool().length} 題`;
+    $('#range-sum').textContent = `已選 ${keys.size} 範圍，共 ${pickPool().length} 題`;
   };
   view.querySelectorAll('.rng').forEach((c) => (c.onchange = updateSum));
   $('#pr-kw').oninput = updateSum;
@@ -319,7 +319,7 @@ function home() {
     const count = +$('#pr-count').value;
     let pool = pickPool();
     if ($('#pr-mode').value === 'smart') {
-      // 依優先序排(錯題→沒做過→做過未掌握→已掌握),同級隨機
+      // 依優先序排（錯題→沒做過→做過未掌握→已掌握），同級隨機
       pool = pool.map((q) => ({ q, pr: reviewPriority(store.q[q.id]), r: Math.random() }))
         .sort((a, b) => a.pr - b.pr || a.r - b.r).map((x) => x.q);
     } else {
@@ -330,7 +330,7 @@ function home() {
   };
   $('#challenge').onclick = () => { store.challengeDone = today(); save(); runPractice(dailyChallenge()); };
   $('#share').onclick = async () => {
-    const txt = `我在 iPAS AI 應用規劃師模擬考刷題:連續打卡 ${strk} 天、今日 ${dc}/${g} 題。一起來練歷屆考古題!`;
+    const txt = `我在 iPAS AI 應用規劃師模擬考刷題：連續打卡 ${strk} 天、今日 ${dc}/${g} 題。一起來練歷屆考古題！`;
     const url = location.origin + location.pathname;
     if (navigator.share) { try { await navigator.share({ title: 'iPAS 模考練習', text: txt, url }); } catch {} }
     else { try { await navigator.clipboard.writeText(`${txt} ${url}`); $('#share').textContent = '已複製連結'; } catch {} }
@@ -395,9 +395,9 @@ function mockSetup() {
   view.innerHTML = `
     <section class="card">
       <h2>模擬考模式</h2>
-      <p class="muted">整份計時作答,交卷前不顯示答案。練臨場與時間分配。</p>
+      <p class="muted">整份計時作答，交卷前不顯示答案。練臨場與時間分配。</p>
       <label>試卷<select id="mk-paper">${opts}</select></label>
-      <label>時間(分鐘)<input id="mk-min" type="number" value="${lim}" min="1"></label>
+      <label>時間（分鐘）<input id="mk-min" type="number" value="${lim}" min="1"></label>
       <button class="primary" id="mk-start">開始模擬考</button>
     </section>`;
   $('#mk-start').onclick = () => {
@@ -441,7 +441,7 @@ function runMock(pool, mins) {
   };
   function submit() {
     clearInterval(timer);
-    // 計入進度(模擬考也更新 Leitner / 統計)
+    // 計入進度（模擬考也更新 Leitner / 統計）
     pool.forEach((q, idx) => {
       const p = qp(q.id);
       const correct = answers[idx] === q.answer;
@@ -475,7 +475,7 @@ function wrongbook() {
     <section class="card">
       <h2>錯題本</h2>
       <p class="muted">答錯過、還沒掌握的題會留在這。同一題之後「連續答對 ${MASTER_BOX - 1} 次」就算掌握、自動移出。</p>
-      ${ids.length ? `<button class="primary" id="drill">只練這些錯題</button>` : '<p>目前沒有錯題,繼續加油。</p>'}
+      ${ids.length ? `<button class="primary" id="drill">只練這些錯題</button>` : '<p>目前沒有錯題，繼續加油。</p>'}
       <ul class="wrong">${list.map((q) => `<li>${esc(q.question)} <span class="muted">（${esc(q.subject)}・再連對 ${Math.max(1, MASTER_BOX - (qp(q.id).box || 1))} 次就掌握）</span></li>`).join('')}</ul>
     </section>`;
   if (ids.length) $('#drill').onclick = () => runPractice(shuffle(list));
@@ -487,7 +487,7 @@ function stats() {
   const cover = s.total ? Math.round((s.practiced / s.total) * 1000) / 10 : 0;
   const rec = store.recent || [];
   const recAcc = rec.length ? Math.round((rec.reduce((a, b) => a + b, 0) / rec.length) * 1000) / 10 : null;
-  // 各章節(範圍)正確率與掌握度
+  // 各章節（範圍）正確率與掌握度
   const byCh = new Map();
   for (const q of DATA.questions) {
     const k = rangeKey(q);
@@ -522,12 +522,12 @@ function stats() {
     <section class="card">
       <h2>學習統計</h2>
       <div class="grid">
-        <div><b>${cover}％</b><span>涵蓋率(練過 ${s.practiced}/${s.total})</span></div>
-        <div><b>${recAcc == null ? '—' : recAcc + '％'}</b><span>近期正確率(最近 ${rec.length})</span></div>
+        <div><b>${cover}％</b><span>涵蓋率（練過 ${s.practiced}/${s.total}）</span></div>
+        <div><b>${recAcc == null ? '—' : recAcc + '％'}</b><span>近期正確率（最近 ${rec.length}）</span></div>
         <div><b>${s.wrongNow}</b><span>目前錯題</span></div>
         <div><b>${s.mastered}</b><span>已掌握</span></div>
       </div>
-      <p class="muted" style="font-size:13px">「掌握」= 同一題連續答對 2 次。用「智慧複習」會優先讓你重做沒掌握與答錯的題,掌握數才會往上跑。</p>
+      <p class="muted" style="font-size:13px">「掌握」= 同一題連續答對 2 次。用「智慧複習」會優先讓你重做沒掌握與答錯的題，掌握數才會往上跑。</p>
       <h3>成就</h3>
       <div class="badges">${badgeHtml}</div>
       <h3>最近 14 天題數</h3>
@@ -543,13 +543,13 @@ function stats() {
 
 function settings() {
   setNav('settings');
-  if (SYNC_URL) pushSync(); // 打開設定頁就把最新進度上傳,確保拿碼去別台時雲端已是最新
+  if (SYNC_URL) pushSync(); // 打開設定頁就把最新進度上傳，確保拿碼去別台時雲端已是最新
   const remHour = (store.settings && store.settings.reminderHour) || 20;
   view.innerHTML = `
     <section class="card">
       <h2>設定</h2>
-      <h3>安裝成 app</h3>
-      <p class="muted">裝起來有 app icon、可全螢幕、離線也能刷。</p>
+      <h3>安裝成 App</h3>
+      <p class="muted">裝起來有 App icon、可全螢幕、離線也能刷。</p>
       <button id="set-install">安裝</button>
       <span id="set-install-msg" class="muted"></span>
 
@@ -557,12 +557,12 @@ function settings() {
       <label>每日目標題數
         <input id="set-goal" type="number" min="1" max="611" value="${dailyGoal()}">
       </label>
-      <label>考試日期(首頁倒數用)
+      <label>考試日期（首頁倒數用）
         <input id="set-exam" type="date" value="${(store.settings && store.settings.examDate) || ''}">
       </label>
 
-      <h3>每日提醒(推播)</h3>
-      <p class="muted">到設定時間若今天還沒練,會推播提醒你刷題。iPhone 需先把本站「加到主畫面」,並從安裝後的 app 開啟才收得到。</p>
+      <h3>每日提醒（推播）</h3>
+      <p class="muted">到設定時間若今天還沒練，會推播提醒你刷題。iPhone 需先把本站「加到主畫面」，並從安裝後的 App 開啟才收得到。</p>
       <label>提醒時間
         <select id="rem-hour">${Array.from({ length: 24 }, (_, h) => `<option value="${h}" ${h === remHour ? 'selected' : ''}>${String(h).padStart(2, '0')}:00</option>`).join('')}</select>
       </label>
@@ -572,8 +572,8 @@ function settings() {
 
       <h3>同步碼</h3>
       <p class="muted">${SYNC_URL
-        ? '平常背景自動同步(每隔幾秒、切走 app 時、打開本頁時都會上傳)。換新裝置時:先在舊裝置打開這頁(會上傳),再到新裝置輸入這組碼。'
-        : '雲端同步尚未啟用(需在 app.js 填入 Worker 網址)。目前可用下方「匯出/匯入」轉移。'}</p>
+        ? '平常背景自動同步（每隔幾秒、切走 App 時、打開本頁時都會上傳）。換新裝置時：先在舊裝置打開這頁（會上傳），再到新裝置輸入這組碼。'
+        : '雲端同步尚未啟用（需在 app.js 填入 Worker 網址）。目前可用下方「匯出/匯入」轉移。'}</p>
       <p class="code" id="code">${esc(store.syncCode)}</p>
       <label>在新裝置輸入既有同步碼
         <input id="code-in" placeholder="例如 fox-river-82">
@@ -624,10 +624,10 @@ function settings() {
         if (await pushIsOn()) { await disablePush(); btn.textContent = '開啟提醒'; $('#rem-msg').textContent = '已關閉提醒'; }
         else {
           const r = await enablePush((store.settings && store.settings.reminderHour) || 20);
-          if (r.ok) { btn.textContent = '關閉提醒'; $('#rem-msg').textContent = '已開啟,每天到點提醒'; }
-          else { $('#rem-msg').textContent = '開啟失敗:' + (r.reason || '請稍後再試'); }
+          if (r.ok) { btn.textContent = '關閉提醒'; $('#rem-msg').textContent = '已開啟，每天到點提醒'; }
+          else { $('#rem-msg').textContent = '開啟失敗：' + (r.reason || '請稍後再試'); }
         }
-      } catch { $('#rem-msg').textContent = '發生錯誤,請稍後再試'; }
+      } catch { $('#rem-msg').textContent = '發生錯誤，請稍後再試'; }
       btn.disabled = false;
     };
   }
@@ -636,7 +636,7 @@ function settings() {
     try {
       const r = await fetch(`${SYNC_URL}/push/test`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code: store.syncCode }) });
       const j = await r.json().catch(() => ({}));
-      $('#rem-msg').textContent = r.ok ? '已傳送,看通知有沒有跳出' : (j.error === 'not_subscribed' ? '請先「開啟提醒」' : '失敗:' + (j.error || r.status));
+      $('#rem-msg').textContent = r.ok ? '已傳送，看通知有沒有跳出' : (j.error === 'not_subscribed' ? '請先「開啟提醒」' : '失敗：' + (j.error || r.status));
     } catch { $('#rem-msg').textContent = '傳送失敗'; }
   };
   $('#code-set').onclick = async () => {
@@ -652,7 +652,7 @@ function settings() {
     $('#sync-msg').textContent = '同步中…';
     const pulled = await pullSync();
     const pushed = await pushSync();
-    $('#sync-msg').textContent = pushed || pulled ? '已同步' : '同步失敗(檢查網路或同步碼)';
+    $('#sync-msg').textContent = pushed || pulled ? '已同步' : '同步失敗（檢查網路或同步碼）';
     if (pulled) setTimeout(settings, 600);
   };
   $('#exp').onclick = () => download('ipas-progress.json', JSON.stringify(store, null, 2), 'application/json');
@@ -668,7 +668,7 @@ function settings() {
     } catch { alert('讀取失敗。'); }
   };
   $('#reset').onclick = () => {
-    if (confirm('確定清除本機所有作答進度與筆記?')) { store = { v: 1, syncCode: makeCode(), q: {} }; save(); settings(); }
+    if (confirm('確定清除本機所有作答進度與筆記？')) { store = { v: 1, syncCode: makeCode(), q: {} }; save(); settings(); }
   };
 }
 
@@ -690,14 +690,14 @@ async function boot() {
   try {
     DATA = await (await fetch('questions.json')).json();
   } catch {
-    view.innerHTML = `<section class="card"><p class="bad">載入 questions.json 失敗。請用本機伺服器開啟(例如 <code>python3 -m http.server</code>)。</p></section>`;
+    view.innerHTML = `<section class="card"><p class="bad">載入 questions.json 失敗。請用本機伺服器開啟（例如 <code>python3 -m http.server</code>）。</p></section>`;
     return;
   }
   try { CONCEPTS = ((await (await fetch('concepts.json')).json()).cards) || []; } catch { CONCEPTS = []; }
   if (DATA.meta?.title) $('#title').textContent = DATA.meta.title;
   if (DATA.meta?.note) { const n = $('#banner'); n.textContent = DATA.meta.note; n.hidden = false; }
   localStorage.setItem(STORE_KEY, JSON.stringify(store)); // 落地可能新生成的 syncCode(不動 updatedAt)
-  if (SYNC_URL) await pullSync(); // 開啟先拉雲端,單人多裝置就不會互蓋
+  if (SYNC_URL) await pullSync(); // 開啟先拉雲端，單人多裝置就不會互蓋
   document.addEventListener('visibilitychange', () => { if (document.hidden) pushSync(); });
   home();
 }
