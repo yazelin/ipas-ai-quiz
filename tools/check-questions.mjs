@@ -37,8 +37,9 @@ let halfCount = 0;
 for (const x of q) for (const t of [x.question, x.explanation, ...(x.options || [])]) if (t && half.test(t)) { halfCount++; break; }
 if (halfCount) warns.push(`${halfCount} 題有「中文緊鄰半形標點 / 半形括號夾中文」,house style 應全形(夾純英文的括號可維持半形)`);
 
-// 4b) 反向:全形括號（）夾「純英數」應改半形()(house style:夾純英文的括號維持半形)
-const fullEng = /（[^（）一-鿿]*[A-Za-z0-9][^（）一-鿿]*）/;
+// 4b) 反向:全形括號（）夾「純 ASCII(含英數)」應改半形()(house style:夾純英文的括號維持半形)
+//     內層限定純半形可見字元 [ -~],故含中文或中文標點(如「（A、B）」)不會誤報。
+const fullEng = /（[ -~]*[A-Za-z0-9][ -~]*）/;
 let fullEngCount = 0;
 for (const x of q) for (const t of [x.question, x.explanation, ...(x.options || [])]) if (t && fullEng.test(t)) { fullEngCount++; break; }
 if (fullEngCount) warns.push(`${fullEngCount} 題有「全形（）夾純英數」,house style 應半形()(如 （Model）→ (Model))`);
