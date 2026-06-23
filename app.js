@@ -568,7 +568,11 @@ function stats() {
   for (let i = 13; i >= 0; i--) { const d = new Date(today() + 'T00:00:00'); d.setDate(d.getDate() - i); days14.push(ymd(d)); }
   const hist = store.history || {};
   const maxA = Math.max(1, ...days14.map((d) => (hist[d] && hist[d].a) || 0));
-  const bars = days14.map((d) => `<div class="bar" style="height:${Math.round((((hist[d] && hist[d].a) || 0) / maxA) * 100)}%" title="${d}:${(hist[d] && hist[d].a) || 0} 題"></div>`).join('');
+  const bars = days14.map((d) => {
+    const a = (hist[d] && hist[d].a) || 0;
+    const h = a ? Math.max(3, Math.round((a / maxA) * 56)) : 0;
+    return `<div class="tcol" title="${d}：${a} 題"><span class="tnum">${a || ''}</span><div class="bar" style="height:${h}px"></div></div>`;
+  }).join('');
   view.innerHTML = `
     <section class="card">
       <h2>學習統計</h2>

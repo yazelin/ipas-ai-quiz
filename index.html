@@ -111,8 +111,10 @@
   .badges { display:flex; flex-wrap:wrap; gap:8px; margin:6px 0 14px; }
   .badge { font-size:13px; padding:6px 10px; border-radius:999px; background:#ecfdf5; color:#047857; border:1px solid #a7f3d0; }
   .badge.lock { background:#f3f4f6; color:#9ca3af; border-color:#e5e7eb; }
-  .trend { display:flex; align-items:flex-end; gap:4px; height:64px; margin:8px 0 4px; }
-  .trend .bar { flex:1; background:var(--c-accent); border-radius:3px 3px 0 0; min-height:2px; opacity:.85; }
+  .trend { display:flex; align-items:flex-end; gap:3px; height:78px; margin:8px 0 4px; }
+  .tcol { flex:1; height:100%; display:flex; flex-direction:column; justify-content:flex-end; align-items:center; gap:2px; }
+  .tnum { font-size:10px; color:var(--c-muted); font-variant-numeric:tabular-nums; line-height:1; min-height:11px; }
+  .trend .bar { width:100%; background:var(--c-accent); border-radius:3px 3px 0 0; opacity:.85; }
   .trend-lab { display:flex; justify-content:space-between; font-size:11px; color:var(--c-muted); }
   .code { font-family:ui-monospace,monospace; font-size:20px; background:#f8fafc; padding:10px; border-radius:8px; text-align:center; letter-spacing:1px; }
   h3.danger, button.danger { color:var(--c-bad); }
