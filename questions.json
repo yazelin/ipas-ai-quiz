@@ -9693,10 +9693,10 @@
       "topic": "多分類輸出",
       "question": "分析師準備建立一個能將手寫數字圖片（28x28 像素展平為 784 維度）分為 0~9 共 10 個類別的多層感知機(MLP)，且標籤已轉為 One-Hot 編碼(One-Hot Encoding)。為符合 10 個類別的單標籤分類需求，程式碼中(A)與(B)的函數應填入何者？",
       "options": [
-        "sigmoid，mean_squared_error",
-        "softmax，categorical_crossentropy",
-        "relu，binary_crossentropy",
-        "tanh，sparse_categorical_crossentropy"
+        "sigmoid, mean_squared_error",
+        "softmax, categorical_crossentropy",
+        "relu, binary_crossentropy",
+        "tanh, sparse_categorical_crossentropy"
       ],
       "answer": 1,
       "explanation": "正解 (B)。手寫數字 0~9 是「10 類單標籤多分類」，輸出層激活函數要用 Softmax 產生跨類別總和為 1 的機率分布；標籤已轉 One-Hot，搭配的損失函數是 categorical_crossentropy。(A) sigmoid + MSE 不適合多分類；(C) relu 不能當分類輸出激活，binary_crossentropy 用於二元/多標籤；(D) tanh 不適合機率輸出，且 sparse_categorical_crossentropy 是給「整數標籤」用的，與已 One-Hot 的標籤不匹配（One-Hot 要用 categorical_crossentropy）。記憶點：多分類單標籤 = Softmax + categorical_crossentropy（標籤已 One-Hot）；若標籤是整數則改 sparse 版。",
@@ -10298,10 +10298,10 @@
       "topic": "MLP多分類",
       "question": "分析師準備建立一個能將手寫數字圖片（28x28 像素展平為 784 維度）分為 0~9 共 10 個類別的多層感知機(MLP)，且標籤已轉為 One-Hot 編碼(One-Hot Encoding)。為符合 10 個類別的單標籤分類需求，下圖中的程式碼中(A)與(B)的函數應填入何者？",
       "options": [
-        "(A) sigmoid，(B) mean_squared_error",
-        "(A) softmax，(B) categorical_crossentropy",
-        "(A) relu，(B) binary_crossentropy",
-        "(A) tanh，(B) sparse_categorical_crossentropy"
+        "(A) sigmoid, (B) mean_squared_error",
+        "(A) softmax, (B) categorical_crossentropy",
+        "(A) relu, (B) binary_crossentropy",
+        "(A) tanh, (B) sparse_categorical_crossentropy"
       ],
       "answer": 1,
       "explanation": "正解 (B)。與 q40 同題：手寫數字 0~9 共 10 類、單標籤多分類，輸出層 (A) 用 softmax 輸出跨類別總和為 1 的機率分布，損失 (B) 因標籤已是 One-Hot 編碼而用 categorical_crossentropy。(A) sigmoid + MSE 不適合多分類機率輸出；(C) relu 不能當分類輸出激活，binary_crossentropy 用於二元/多標籤；(D) tanh 不適合機率輸出，sparse_categorical_crossentropy 是給整數標籤用的，與 One-Hot 不匹配。記憶點：單標籤多分類 = softmax + categorical_crossentropy（One-Hot 標籤）；整數標籤才用 sparse 版。",
