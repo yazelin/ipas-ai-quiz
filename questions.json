@@ -4071,7 +4071,7 @@
         "自迴歸模型（Autoregressive Model）"
       ],
       "answer": 2,
-      "explanation": "正解(C)鑑別式模型(Discriminative Model)。CRF(Conditional Random Field)直接對『給定輸入序列下的標籤序列條件機率 P（標籤|觀測）』建模，不去描述資料如何生成，屬於鑑別式模型；它能考慮詞與詞間標籤的關聯，常用於 NER、詞性標註等序列標註任務。(A)生成式模型（如 HMM、樸素貝氏）建模的是聯合機率 P（觀測，標籤），與 CRF 相對。(B)CRF 是監督式學習，需標註資料，非無監督。(D)自迴歸模型逐步生成下一個 token，屬生成式範疇，與 CRF 不同。核心記憶點：CRF=鑑別式(直接學 P(y|x))、HMM/樸素貝氏=生成式(學 P(x,y))；判別式直接分類、生成式描述資料如何產生。",
+      "explanation": "正解(C)鑑別式模型(Discriminative Model)。CRF(Conditional Random Field)直接對『給定輸入序列下的標籤序列條件機率 P（標籤|觀測）』建模，不去描述資料如何生成，屬於鑑別式模型；它能考慮詞與詞間標籤的關聯，常用於 NER、詞性標註等序列標註任務。(A)生成式模型（如 HMM、樸素貝氏）建模的是聯合機率 P（觀測，標籤），與 CRF 相對。(B)CRF 是監督式學習，需標註資料，非無監督。(D)自迴歸模型逐步生成下一個 token，屬生成式範疇，與 CRF 不同。核心記憶點：CRF=鑑別式（直接學 P(y|x)）、HMM/樸素貝氏=生成式（學 P(x,y)）；判別式直接分類、生成式描述資料如何產生。",
       "id": "115-2-b-s1-q39",
       "chapter": "鑑別式AI與生成式AI"
     },
@@ -6624,7 +6624,7 @@
       "explanation": "卜瓦松分佈的適用條件是事件彼此獨立且平均發生率（λ）固定，(C)的敘述正確，故正解(C)正確。(A)錯：lambda_poisson=5 是平均發生率，不是上限，瑕疵個數理論上可超過 5;(B)錯：poisson.pmf(5,λ) 是「恰好等於 5 個」的機率，不是小於 5 個；(D)錯：poisson.cdf(10,5) 是「小於或等於 10 個」的累積機率，不是大於或等於 10 個。核心概念：pmf 算恰好等於、cdf 算小於等於，λ 是平均率而非最大值。",
       "id": "114-2-m-s2-q39",
       "chapter": "統計與機率基礎",
-      "image": "assets/114-2-m-s2-f04.png"
+      "image": "assets/114-2-m-s2-q39.png"
     },
     {
       "level": "中級",
@@ -9837,7 +9837,7 @@
       ],
       "answer": 0,
       "explanation": "偏態（Skewness）看分佈長尾朝哪邊：尾巴往左（低值方向）拖長為負偏（左偏），往右拖長為正偏（右偏）。附圖分佈呈左偏（長尾在左、峰偏右），故 Skewness 小於 0，正解(A)正確。(B)Skewness 大於 0 是右偏，尾在右側，與圖不符；(C)Skewness=0 代表完全對稱（如常態），圖並不對稱；(D)只要有資料就能計算偏態，並非無法計算。核心概念：尾巴拖向哪邊，偏態符號就跟著走，左尾為負、右尾為正。",
-      "image": "assets/114-2-m-s2-f01.png",
+      "image": "assets/114-2-m-s2-f1.png",
       "id": "114-2-m-s2-f1"
     },
     {
@@ -9855,7 +9855,7 @@
       ],
       "answer": 1,
       "explanation": "附圖虛擬碼的特徵是逐一把每一個樣本當作測試集、其餘全部當訓練集，重複 n 次（n=樣本數），這正是留一交叉驗證 LOOCV（Leave-One-Out Cross Validation），故正解(B)正確。(A)Hold-out 只切一次訓練/測試，不會逐筆輪流；(C)K-fold 是切成 K 折輪流，當 K=樣本數時才退化為 LOOCV，但題目逐一留一即 LOOCV 本身；(D)Bootstrap 是有放回重抽樣建立訓練集，機制不同。核心概念：每次只留一筆當測試、其餘訓練且重複到每筆都當過一次=LOOCV。",
-      "image": "assets/114-2-m-s2-f02.png",
+      "image": "assets/114-2-m-s2-f2.png",
       "id": "114-2-m-s2-f2"
     },
     {
@@ -9873,7 +9873,7 @@
       ],
       "answer": 0,
       "explanation": "附圖虛擬碼流程是指定 K 個群、隨機初始化群中心、把每點指派到最近的中心、再以各群點平均更新中心，反覆迭代至收斂，這是 K-means 分群的標準步驟，故正解(A)正確。(B)高斯混合模型用機率分佈與 EM 算法做軟性指派，非以距離直接硬指派並取平均更新中心；(C)階層式分群是依相似度逐步合併或分裂建樹，無需預設中心反覆更新；(D)DBSCAN 依密度（ε 與 MinPts）擴展群集，不需指定群數或中心。核心概念：指定群數、最近中心指派、取平均更新中心反覆迭代=K-means。",
-      "image": "assets/114-2-m-s2-f03.png",
+      "image": "assets/114-2-m-s2-f3.png",
       "id": "114-2-m-s2-f3"
     },
     {
@@ -9891,7 +9891,7 @@
       ],
       "answer": 1,
       "explanation": "與第 40 題相同，Year 被讀成 float64 的合理原因是 A 與 D，故正解(B)「原因 A、原因 D」正確。原因 A：整數欄一旦含缺失值 NaN，因傳統 int 無法承載 NaN，pandas 會自動把整欄升為 float64；原因 D：若年份本身寫成帶小數（2006.0），會被視為浮點數。原因 B 錯：純字串「2006」會被讀為 object，不會自動變浮點；原因 C 錯：pandas 不會把所有數值一律讀成 float64，純整數欄會是 int64。核心概念：缺值 NaN 或含小數，才導致整數欄變成 float64。",
-      "image": "assets/114-2-m-s2-f05.png",
+      "image": "assets/114-2-m-s2-f4.png",
       "id": "114-2-m-s2-f4"
     },
     {
@@ -9909,7 +9909,7 @@
       ],
       "answer": 3,
       "explanation": "依附圖 df.describe() 結果判讀，正解(D)正確：youtube 變數的第一四分位數（Q1，即 25%）為 89.25，與描述統計表相符。(A)錯：資料筆數與變數個數須以實際顯示為準，題述 199 筆 4 個與圖不符；(B)錯：sales 的中位數應看 50% 那列的值，並非 16.827（該數可能是平均值或其他統計量）;(C)錯：facebook 的 Q3（75%）並非 11.94。判讀重點在於對齊正確的欄位與正確的統計列（25%/50%/75%）。核心概念：describe 中 Q1 看 25% 列、中位數看 50% 列、Q3 看 75% 列，須對準欄位讀值。",
-      "image": "assets/114-2-m-s2-f06.png",
+      "image": "assets/114-2-m-s2-f5.png",
       "id": "114-2-m-s2-f5"
     },
     {
@@ -9927,7 +9927,7 @@
       ],
       "answer": 2,
       "explanation": "與第 45 題相同，計算各欄缺失值個數的正確語法是 isnull().sum() 或 isna().sum()，isnull() 與 isna() 為等價別名，故選項 A、C 皆正確，正解(C)「選項 A、選項 C」正確。選項 B 的 isNaN() 與選項 D 的 isnan() 都不是 pandas DataFrame 的方法，會引發 AttributeError。核心概念：pandas 偵測缺值只有 isnull() 與 isna() 兩個等價方法，沒有 isNaN 或 isnan。",
-      "image": "assets/114-2-m-s2-f07.png",
+      "image": "assets/114-2-m-s2-f6.png",
       "id": "114-2-m-s2-f6"
     },
     {
@@ -9945,7 +9945,7 @@
       ],
       "answer": 1,
       "explanation": "正解(B)「B、F」正確。敘述 B 正確：scikit-learn 的 fit 慣例是 fit(X, y)，即先特徵 X 再目標 y；敘述 F 正確：依附圖 OLS 結果截距項（const）係數值為 3.5561。其餘皆錯：A 把參數寫成 fit(y, X) 順序顛倒；C 錯，reg.coef_ 只回傳各特徵的迴歸係數，不含截距（截距在 intercept_），三特徵應為 3 個而非 4 個；D 的 sm.OLS(X2, y) 參數順序錯，statsmodels 慣例是 sm.OLS(y, X2)（被解釋變數在前）;E 錯，須看各係數的 p 值，通常不會所有係數在 α=0.05 下皆顯著。核心概念：sklearn 是 fit(X,y)、statsmodels OLS 是 OLS(y,X)，且 coef_ 不含截距。",
-      "image": "assets/114-2-m-s2-f08.png",
+      "image": "assets/114-2-m-s2-f7.png",
       "id": "114-2-m-s2-f7"
     },
     {
@@ -9963,7 +9963,7 @@
       ],
       "answer": 1,
       "explanation": "正解 (B) MSE。此題需看程式碼判斷，但從概念上：MSE（均方誤差）的公式是把每筆誤差先平方再取平均（mean of squared errors），程式若是 mean((y_true - y_pred)**2) 即為 MSE。(A) MAE 取的是誤差絕對值的平均，沒有平方；(C) RMSE 是在 MSE 外再開根號（sqrt）；(D) R² 是決定係數，公式為 1 - SS_res/SS_tot，結構完全不同。記憶點：MSE=誤差平方取平均；多開一個根號才是 RMSE，取絕對值是 MAE。",
-      "image": "assets/114-2-m-s3-f38.png",
+      "image": "assets/114-2-m-s3-f1.png",
       "id": "114-2-m-s3-f1"
     },
     {
@@ -9981,7 +9981,7 @@
       ],
       "answer": 2,
       "explanation": "正解 (C) Dropout。從程式碼判斷，若出現訓練時隨機將部分神經元輸出以機率 p 設為 0（如 nn.Dropout 或乘上隨機 0/1 遮罩），即為 Dropout 正則化，靠隨機丟棄神經元防止共適應與過擬合。(A) L1 正則化是在損失加上權重絕對值懲罰；(B) L2 正則化是加上權重平方懲罰；(D) Batch Normalization 是對每批次做標準化（減均值除標準差）並學習縮放平移，目的在穩定分佈而非隨機丟棄。記憶點：隨機把一部分神經元歸零＝Dropout；加權重懲罰項才是 L1/L2。",
-      "image": "assets/114-2-m-s3-f39.png",
+      "image": "assets/114-2-m-s3-f2.png",
       "id": "114-2-m-s3-f2"
     },
     {
@@ -9999,7 +9999,7 @@
       ],
       "answer": 2,
       "explanation": "正解 (C) np.dot(v1, v2) 結果為 np.int64(32)。以常見題設 v1=[1,2,3]、v2=[4,5,6]，內積 np.dot = 1×4+2×5+3×6 = 4+10+18 = 32，結果為純量整數，正確。(A) np.linalg.inv(A) 計算的是反矩陣（inverse）而非行列式（行列式是 np.linalg.det）；(B) v1*v2 是元素逐項相乘 = [4,10,18]，不是 [5,7,9]（[5,7,9] 是相加 v1+v2）；(D) np.linalg.eig(A) 計算特徵值與特徵向量（eigen），不是反矩陣。記憶點：dot=內積（純量）、*=逐元素、inv=反矩陣、det=行列式、eig=特徵值/向量。",
-      "image": "assets/114-2-m-s3-f40.png",
+      "image": "assets/114-2-m-s3-f3.png",
       "id": "114-2-m-s3-f3"
     },
     {
@@ -10017,7 +10017,7 @@
       ],
       "answer": 3,
       "explanation": "正解 (D) A_and_B.sum() / B.sum()。條件機率 P(A|B) 定義為 P(A∩B)/P(B)，在 Monte Carlo 模擬中即「同時滿足 A 與 B 的次數」除以「滿足 B 的次數」，故為 A_and_B.sum() / B.sum()。(A) 分母用乘積 A.sum()×B.sum() 不符條件機率定義；(B) 分母用相加也錯；(C) 分母用 A.sum() 算的是 P(B|A) 而非 P(A|B)。記憶點：P(A|B)=P(A∩B)/P(B)，分母一定是「條件事件 B」發生的次數。",
-      "image": "assets/114-2-m-s3-f41.png",
+      "image": "assets/114-2-m-s3-f4.png",
       "id": "114-2-m-s3-f4"
     },
     {
@@ -10035,7 +10035,7 @@
       ],
       "answer": 1,
       "explanation": "正解 (B) 僅凍結 model.features.parameters() 並重設 classifier[6]。VGG16 的卷積層在 model.features，分類器在 model.classifier。遷移學習要凍結卷積、只訓最後全連接層，正確做法是把 features 的參數 requires_grad 設 False，再把 classifier[6]（最後一層）換成新的、可訓練的 Linear。(A) 凍結全部 model.parameters() 後，重設的 classifier[6] 雖是新層（預設可訓練），但會把其他 classifier 層也凍住、語意不精準，且全凍寫法非標準遷移學習做法；(C) 凍 classifier 卻反而想訓它，邏輯矛盾、且沒凍 features；(D) model.requires_grad 不是有效屬性，無法整體設定。記憶點：VGG 遷移學習＝凍 features、換並訓 classifier 最後一層。",
-      "image": "assets/114-2-m-s3-f45.png",
+      "image": "assets/114-2-m-s3-f5.png",
       "id": "114-2-m-s3-f5"
     },
     {
@@ -10053,7 +10053,7 @@
       ],
       "answer": 1,
       "explanation": "正解 (B) 程式碼 B。PCA 去噪的關鍵在於「先用乾淨資料 fit（學主成分），再對含噪影像做 transform 後 inverse_transform 重建」，若降噪無效，通常是 fit 對象錯了（例如直接 fit 在 noisy 上，或保留的主成分數量不當），需修改的是負責 fit/設定成分數的那一行（B）。其他行（A 載入資料、C transform、D 重建、E 顯示）在流程上正確，不需更動。記憶點：PCA 去噪要用乾淨資料學主成分、對噪影像投影再反投影；改錯先看 fit 那一步。",
-      "image": "assets/114-2-m-s3-f46.png",
+      "image": "assets/114-2-m-s3-f6.png",
       "id": "114-2-m-s3-f6"
     },
     {
@@ -10071,7 +10071,7 @@
       ],
       "answer": 1,
       "explanation": "正解 (B) 程式碼 A、程式碼 C。能「正確使用 KNN 搭配交叉驗證」的關鍵是：正確建立 KNeighborsClassifier、正確呼叫 cross_val_score（傳入模型、X、y、cv），並輸出準確率。A 與 C 兩段符合此正確寫法；B 與 D 則可能有錯（如未做交叉驗證、評分方式錯誤、或 API 用法不對），故不選。記憶點：KNN+交叉驗證的標準寫法＝KNeighborsClassifier()＋cross_val_score(model, X, y, cv=k)，再取平均準確率。",
-      "image": "assets/114-2-m-s3-f47.png",
+      "image": "assets/114-2-m-s3-f7.png",
       "id": "114-2-m-s3-f7"
     },
     {
@@ -10089,7 +10089,7 @@
       ],
       "answer": 2,
       "explanation": "正解 (C) A、D。A：X_train -= X_train.mean(axis=0) 是減去各特徵平均，使每個特徵平均變成 0，正確。D：標準化讓特徵尺度一致、輸入分佈穩定，有助於緩解梯度爆炸或消失，正確。其餘錯誤：B：除以標準差是把標準差調成 1（不是 0），敘述錯；C：標準化（z-score）結果並非壓縮到 0~1（那是 Min-Max 正規化）；E：標準化是特徵縮放／前處理，不是特徵選擇（Feature Selection）；F：改成 X_train = X_train.std(...) 會把資料變成標準差本身，完全錯誤。記憶點：標準化＝減均值（→0）除標準差（→1），屬特徵縮放，不是壓到 0~1、也不是特徵選擇。",
-      "image": "assets/114-2-m-s3-f48.png",
+      "image": "assets/114-2-m-s3-f8.png",
       "id": "114-2-m-s3-f8"
     },
     {
@@ -10107,7 +10107,7 @@
       ],
       "answer": 2,
       "explanation": "正解 (C) 空格 1 值為 100，空格 2 值為 110。此題依 model.summary() 計算各層參數：全連接層參數＝（輸入維度＋1 偏差）×神經元數。輸入特徵 9，若第一隱藏層有 10 個神經元則參數＝(9+1)×10=100（空格 1=100）；下一層 10→10 則 (10+1)×10=110（空格 2=110），與 (C) 相符。(B) 數值順序顛倒；(A) 「relu 數學式為特定公式」與本題填空無關且未必正確；(D) sigmoid 一般用於二元分類（輸出單一機率），多類別分類應用 softmax，敘述錯誤。記憶點：Dense 層參數＝（輸入數＋1）×輸出神經元數，別忘了加偏差。",
-      "image": "assets/114-2-m-s3-f49.png",
+      "image": "assets/114-2-m-s3-f9.png",
       "id": "114-2-m-s3-f9"
     },
     {
@@ -10125,7 +10125,7 @@
       ],
       "answer": 2,
       "explanation": "正解 (C) A、D。matplotlib 繪圖慣例：訓練損失常以藍色實線、驗證損失以紅色虛線表示。A：空格 1 填 \"b-\"（藍色實線，畫訓練損失）正確；D：空格 2 填 \"r--\"（紅色虛線，畫驗證損失）正確。其餘：B \"b--\"、C \"r-\" 與此配色慣例不符；E：一般情況驗證損失下降幅度通常不如訓練損失明顯（甚至會回升），敘述「驗證損失減少更明顯」不成立。記憶點：格式字串中字母=顏色（b 藍/r 紅）、符號=線型（- 實線/-- 虛線）。",
-      "image": "assets/114-2-m-s3-f50.png",
+      "image": "assets/114-2-m-s3-f10.png",
       "id": "114-2-m-s3-f10"
     },
     {
@@ -10143,7 +10143,7 @@
       ],
       "answer": 0,
       "explanation": "正解(A)：此題與 q19 同旨，看圖也是同樣結論。根本問題在於只用離線指標 AUC(0.91)就宣稱『AI 導入成效良好』，卻忽略線上業務指標（CTR、營收等）的實際變化。AUC 只反映模型的排序/區辨能力，不等於真正帶來商業價值，評估導入成效必須回到業務 KPI 與線上實驗。(B)CTR 下降卻說品質提升是錯誤推論；(C)只憑 CTR 從 3.2% 微降到 3.1% 就主張立即 rollback 過於武斷，且非『結論的根本問題』;(D)只看平均訂單金額升到 $1,020 就說無需考慮其他指標，屬以偏概全。記憶點：離線 AUC 高≠商業成功，評估 AI 成效要對齊線上業務指標。",
-      "image": "assets/115-1-m-s1-f01.png",
+      "image": "assets/115-1-m-s1-f1.png",
       "id": "115-1-m-s1-f1"
     },
     {
@@ -10160,8 +10160,8 @@
         "{B, E}"
       ],
       "answer": 3,
-      "explanation": "此題需依下圖 8 筆訂單的內容用 Apriori 找最低支援度（出現次數）≥3 的最大頻繁項目集。Apriori 的原則：先找滿足門檻的單一項，再逐步組合更大項目集，且任一頻繁項目集的子集也必須頻繁（向下封閉）。依官方答案，最終保留的最大頻繁項目集為 {B, E}，正解(D)，代表 B 與 E 同時出現的次數達到門檻且其組合是滿足支援度的最大集合（其他更大的組合或其他項組合未達 3 次）。其餘選項或為更小的子集(如(A){A})，或為支援度不足/未同時達標的組合(如(B){A,D}、(C){A,B,E})。記憶點：Apriori 找「同時出現次數≥門檻」的項目集，最大頻繁項=不能再擴充仍滿足門檻的那組。",
-      "image": "assets/115-1-m-s2-f01.png",
+      "explanation": "此題需依下圖 8 筆訂單的內容用 Apriori 找最低支援度（出現次數）≥3 的最大頻繁項目集。Apriori 的原則：先找滿足門檻的單一項，再逐步組合更大項目集，且任一頻繁項目集的子集也必須頻繁（向下封閉）。依官方答案，最終保留的最大頻繁項目集為 {B, E}，正解(D)，代表 B 與 E 同時出現的次數達到門檻且其組合是滿足支援度的最大集合（其他更大的組合或其他項組合未達 3 次）。其餘選項或為更小的子集（如(A){A}），或為支援度不足/未同時達標的組合（如(B){A,D}、(C){A,B,E}）。記憶點：Apriori 找「同時出現次數≥門檻」的項目集，最大頻繁項=不能再擴充仍滿足門檻的那組。",
+      "image": "assets/115-1-m-s2-f1.png",
       "id": "115-1-m-s2-f1"
     },
     {
@@ -10179,7 +10179,7 @@
       ],
       "answer": 2,
       "explanation": "ROC 曲線以 FPR 為橫軸、TPR 為縱軸，有幾個必然性質：必過(0,0)與(1,1)、且應為單調不下降（隨門檻放寬，FPR 與 TPR 都只增不減）。因此一條會「往下彎/非單調」或形狀違反單調遞增的曲線最不可能是 ROC。依官方答案，曲線 C 最不可能是 ROC，正解(C)，通常是因為它呈現非單調（中途下降）或落在對角線下方且不符遞增規律。水平線 A、斜直線 D（對角線=隨機猜測 AUC=0.5）、以及上凸的曲線 B 都仍可能是合法 ROC。記憶點：ROC 必過(0,0)→(1,1)且單調不遞減；會往下彎（非單調）的就不可能是 ROC。",
-      "image": "assets/115-1-m-s2-f02.png",
+      "image": "assets/115-1-m-s2-f2.png",
       "id": "115-1-m-s2-f2"
     },
     {
@@ -10197,7 +10197,7 @@
       ],
       "answer": 2,
       "explanation": "此題考 Python 的「可變預設參數陷阱」。當函式以可變物件（如 list 或 dict）作為預設參數，該預設值只在函式定義時建立「一次」，之後每次呼叫共用同一個物件；若函式內對它做了 append 等就地修改，修改會殘留到下一次呼叫。處理 row1 時對共用的預設 list append 了 \"checked\"，處理 row2 時又沿用同一個已被改過的 list 再 append，於是 row2['tags'] 累積成 [\"checked\", \"checked\"]，正解(C)。(A)(B)(D)都不符合「預設可變物件被跨呼叫共用累積」的行為。記憶點：別用可變物件當預設參數，要用 None 再在函式內建新物件，否則狀態會跨呼叫殘留。",
-      "image": "assets/115-1-m-s2-f03.png",
+      "image": "assets/115-1-m-s2-f3.png",
       "id": "115-1-m-s2-f3"
     },
     {
@@ -10215,7 +10215,7 @@
       ],
       "answer": 0,
       "explanation": "此題依下圖 pseudocode 判斷演算法。從選項與典型寫法推斷，程式對每個待分類點計算它與所有訓練樣本的距離、找出最近的 K 個鄰居、再以多數投票決定類別，這正是 K-近鄰(KNN)的流程，正解(A)。(B)K-means 是非監督分群，流程是反覆指派點到最近群心並更新群心，沒有用標籤投票分類；(C)SVM 是求最大間隔超平面、解最佳化問題，不靠逐點找鄰居；(D)隨機森林是訓練多棵決策樹再集成投票，核心是建樹分裂。記憶點：KNN=算距離找最近 K 個鄰居用多數決分類，惰性學習、無顯式訓練。",
-      "image": "assets/115-1-m-s2-f04.png",
+      "image": "assets/115-1-m-s2-f4.png",
       "id": "115-1-m-s2-f4"
     },
     {
@@ -10233,7 +10233,7 @@
       ],
       "answer": 1,
       "explanation": "此題與 q37 相同：輸出 mean(223)遠大於 median(128)、max 高達 4500，顯示 daily_earnings 嚴重右偏並含極端值。為保留原分布並降低補值偏差，用中位數(median)填補最穩健，不被高收入離群值拉抬，正解(B)。(A)平均填補會被極端值抬高造成系統性偏差；(C)用 max 填補會嚴重扭曲分布；(D)直接刪除 5% 遺失損失資料且可能引入選擇偏差，數值欄位仍可補值。記憶點：右偏含離群值的欄位補值首選中位數，而非平均或極值。",
-      "image": "assets/115-1-m-s2-f05.png",
+      "image": "assets/115-1-m-s2-f5.png",
       "id": "115-1-m-s2-f5"
     },
     {
@@ -10251,7 +10251,7 @@
       ],
       "answer": 2,
       "explanation": "此題與 q39 相同，要找「不是合理質疑理由」者。異常/外掛偵測「可以」用分類模型處理（只要妥善處理不平衡並改看 Recall/PR-AUC）,(C)主張「異常偵測不可用分類模型、僅能用分群或離群值方法」太過絕對、本身錯誤，因此不是資深工程師的合理理由，即答案。(A)極不平衡下全猜正常也有 99.95% 準確率，合理；(B)未報 Recall 無法判斷是否抓到外掛，合理；(D)只看 Accuracy 會忽略對少數異常的偵測能力，合理。記憶點：不平衡異常偵測可用分類模型搭配 Recall/PR-AUC，別被「只能分群」這種絕對說法騙。",
-      "image": "assets/115-1-m-s2-f06.png",
+      "image": "assets/115-1-m-s2-f6.png",
       "id": "115-1-m-s2-f6"
     },
     {
@@ -10269,7 +10269,7 @@
       ],
       "answer": 1,
       "explanation": "此題比較 train_test_split 與 solver 的正確用法。train_test_split 的參數順序是「先特徵 X 再標籤 y」，即 train_test_split(X_norm, y, ...) 才對（C、D 把 y 與 X_norm 顛倒，錯）。LogisticRegression 的 solver,\"lbfgs\" 是預設且適合一般（含多類）情況，\"liblinear\" 適用小資料或 L1/二元等特定情境；依官方答案選(B):X_norm 在前且使用 solver=\"lbfgs\"。(A)順序對但用 liblinear 在此非最適；(C)(D)把 X 與 y 順序顛倒，流程錯誤。注意 train_size=0.2 代表只用 20% 訓練雖偏小但選項皆同，差別在 X/y 順序與 solver。記憶點：train_test_split 一定是(X, y)順序；LogisticRegression 一般用 lbfgs。",
-      "image": "assets/115-1-m-s2-f07.png",
+      "image": "assets/115-1-m-s2-f7.png",
       "id": "115-1-m-s2-f7"
     },
     {
@@ -10287,7 +10287,7 @@
       ],
       "answer": 3,
       "explanation": "此題與 q45 相同。f1_score 的 average=\"weighted\" 是先算各類別的 F1（F1 為該類 Precision 與 Recall 的調和平均），再依各類樣本數加權平均，因而能反映類別不平衡，正解(D)。(A)混淆矩陣慣例橫列為真實值、縱欄為預測值，sklearn 預設列=真實標籤，敘述方向錯；(B)對角線數值大代表分類正確多，是好現象，不能用來判定過擬合；(C)\"weighted\" 不是單純平均，而是依樣本數加權，描述不精確。記憶點：F1=Precision 與 Recall 的調和平均；weighted 依各類樣本數加權，適合不平衡資料。",
-      "image": "assets/115-1-m-s2-f08.png",
+      "image": "assets/115-1-m-s2-f8.png",
       "id": "115-1-m-s2-f8"
     },
     {
@@ -10305,7 +10305,7 @@
       ],
       "answer": 1,
       "explanation": "正解 (B)。與 q40 同題：手寫數字 0~9 共 10 類、單標籤多分類，輸出層 (A) 用 softmax 輸出跨類別總和為 1 的機率分布，損失 (B) 因標籤已是 One-Hot 編碼而用 categorical_crossentropy。(A) sigmoid + MSE 不適合多分類機率輸出；(C) relu 不能當分類輸出激活，binary_crossentropy 用於二元/多標籤；(D) tanh 不適合機率輸出，sparse_categorical_crossentropy 是給整數標籤用的，與 One-Hot 不匹配。記憶點：單標籤多分類 = softmax + categorical_crossentropy（One-Hot 標籤）；整數標籤才用 sparse 版。",
-      "image": "assets/115-1-m-s3-f01.png",
+      "image": "assets/115-1-m-s3-f1.png",
       "id": "115-1-m-s3-f1"
     },
     {
@@ -10323,7 +10323,7 @@
       ],
       "answer": 1,
       "explanation": "正解 (B)。與 q41 同題：b/d/p/q 錯誤率異常高的根因是 RandomHorizontalFlip。水平翻轉以 50% 機率把 b 變 d、p 變 q，翻轉後仍配原標籤，等於讓模型學到鏡像錯誤標籤，正好集中在這組鏡像相關字母。(A) RandomRotation(15) 小角度旋轉不會把字母翻成另一字母；(C) ColorJitter 只改灰階/色彩，與方向混淆無關；(D) ToTensor 順序不影響語意標籤正確性。記憶點：方向敏感的字母資料禁用水平翻轉，否則製造鏡像錯誤標籤。",
-      "image": "assets/115-1-m-s3-f02.png",
+      "image": "assets/115-1-m-s3-f2.png",
       "id": "115-1-m-s3-f2"
     },
     {
@@ -10341,7 +10341,7 @@
       ],
       "answer": 2,
       "explanation": "正解 (C)。程式中 param.requires_grad = False 把所有既有權重的梯度關閉（凍結），代表把預訓練骨幹當作固定的特徵提取器，只訓練新接的輸出層，這是遷移學習的 Feature Extraction（特徵萃取）策略。(A) Full Fine-Tuning 會放開全部權重訓練，與凍結相反；(B) Zero-shot Learning 不經訓練直接推論，無凍結權重動作；(D) Knowledge Distillation 是大模型教小模型，概念不同。記憶點：凍結預訓練權重只訓新層 = Feature Extraction。",
-      "image": "assets/115-1-m-s3-f03.png",
+      "image": "assets/115-1-m-s3-f3.png",
       "id": "115-1-m-s3-f3"
     },
     {
@@ -10359,7 +10359,7 @@
       ],
       "answer": 1,
       "explanation": "正解 (B)。與 q44 同題：先用整體資料做 LDA 降維、再進交叉驗證會造成資料洩漏 (Data Leakage)，因為有監督的 LDA 用到了包含未來測試折的全資料標籤，使評估過度樂觀。正解是把 LDA 納入交叉驗證流程（用 Pipeline），每折只在訓練折上 fit。(A) 誤認為標準流程；(C) 結果已被污染，無法代表真實泛化；(D) 跳過 LDA 不是重點。記憶點：降維/標準化等 fit 步驟必須包進交叉驗證、只在訓練折上 fit，否則資料洩漏。",
-      "image": "assets/115-1-m-s3-f04.png",
+      "image": "assets/115-1-m-s3-f4.png",
       "id": "115-1-m-s3-f4"
     },
     {
@@ -10377,7 +10377,7 @@
       ],
       "answer": 0,
       "explanation": "正解 (A)。要確保每個交叉驗證分割中「類別比例與原始資料一致」，必須使用分層 (Stratified) 切分。本題正解是程式碼 B、C、D 三段皆可行：常見的可行寫法包括直接把 cv 設成整數（分類任務用 cross_val_score 預設即為 StratifiedKFold）、傳入 StratifiedKFold 物件、或傳入指定的分層折數，這些都能維持各折類別比例。而被排除的程式碼 A 應為使用一般 KFold（不分層，無法保證比例）或不符需求的寫法，故不選含 A 的選項。(B)(C)(D) 因含 A 或漏掉可行段落而不完整。記憶點：要維持各折類別比例就用 Stratified 切分（分類任務 cross_val_score 的整數 cv 預設即分層）；一般 KFold 不保證比例。",
-      "image": "assets/115-1-m-s3-f05.png",
+      "image": "assets/115-1-m-s3-f5.png",
       "id": "115-1-m-s3-f5"
     },
     {
@@ -10395,7 +10395,7 @@
       ],
       "answer": 1,
       "explanation": "正解 (B)，即描述 B、D、E、F 正確。x/255.0 把像素從 0~255 正規化到 0~1，有助梯度穩定（避免梯度爆炸或消失，描述 D），也提升訓練穩定與泛化（描述 B）;to_categorical(...,10) 把標籤轉成 One-Hot 編碼（描述 E），搭配 10 類多分類輸出層應用 softmax（描述 F）。錯誤的描述：A 說壓縮到 0~31 錯誤（是壓到 0~1）;C 說相當於 z-score 標準化錯誤，除以 255 是 min-max 縮放到 [0,1]，不是減均值除標準差的 z-score。記憶點：除以 255 = min-max 縮到 [0,1]（非 z-score）;to_categorical = One-Hot，配 softmax 多分類。",
-      "image": "assets/115-1-m-s3-f06.png",
+      "image": "assets/115-1-m-s3-f6.png",
       "id": "115-1-m-s3-f6"
     },
     {
@@ -10413,7 +10413,7 @@
       ],
       "answer": 1,
       "explanation": "正解 (B)，即描述 C、E、F 正確。描述 C:BatchNormalization 接在卷積後可穩定各層輸入分布，有助緩解梯度消失或爆炸，正確；描述 E:Dropout(0.25) 隨機關閉部分神經元可減少過擬合，正確；描述 F:Flatten 層把多維特徵圖展平成 1D 向量以接全連結層，正確。錯誤的：A 說 Input 層目的是標準化，錯（Input 只定義輸入形狀，不做標準化）;B 用 padding=\"same\" 且 32 個濾波器，輸出通道數應為 32，故輸出 shape 是 (32,32,32) 而非 (32,32,3)，錯；D 說 Dropout 把 25% 神經元輸出設為 1，錯（是設為 0）。記憶點：Dropout 是隨機歸零（非設 1）,padding='same' 的 Conv2D 輸出通道數等於濾波器數，Flatten 是攤平成 1D。",
-      "image": "assets/115-1-m-s3-f07.png",
+      "image": "assets/115-1-m-s3-f7.png",
       "id": "115-1-m-s3-f7"
     },
     {
@@ -10431,7 +10431,7 @@
       ],
       "answer": 3,
       "explanation": "正解 (D)。與 q45 同題：Epochs=6 時訓練準確率 0.81 明顯高於驗證準確率 0.72，訓練表現好但驗證落後，是典型過擬合 (Overfitting)，模型過度貼合訓練資料而泛化不足。(A) 學習率太低主要造成收斂慢，不直接導致這種泛化落差；(B) Batch Size 太大本身不直接造成此落差；(C) 欠擬合會是訓練與驗證都低且接近，與此處相反。記憶點：訓練分數明顯高於驗證分數且有明顯落差 = 過擬合。",
-      "image": "assets/115-1-m-s3-f08.png",
+      "image": "assets/115-1-m-s3-f8.png",
       "id": "115-1-m-s3-f8"
     }
   ]
