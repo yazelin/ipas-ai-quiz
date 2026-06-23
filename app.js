@@ -240,6 +240,7 @@ function setNav(active) {
 
 // 範圍 = 章節（若題目尚未分類則退回科目），供「選擇練習範圍」用
 const rangeKey = (q) => q.chapter || q.subject;
+const srcOf = (q) => q.source || '歷屆';
 function rangeGroups() {
   const m = new Map();
   for (const q of DATA.questions) {
@@ -302,8 +303,15 @@ function home() {
       <label>題數
         <select id="pr-count"><option value="10">10</option><option value="20">20</option><option value="0">全部（選取範圍）</option></select>
       </label>
+      <label>來源
+        <select id="pr-source">
+          <option value="">全部（歷屆 + 學習指引）</option>
+          <option value="歷屆">只練歷屆考古題</option>
+          <option value="學習指引">只練學習指引範例</option>
+        </select>
+      </label>
       <button class="primary" id="pr-start">開始練習</button>
-      <button id="pr-images">只練看圖題（${DATA.questions.filter((q) => q.image).length} 題,全中級）</button>
+      <button class="primary alt" id="pr-images">只練看圖題（${DATA.questions.filter((q) => q.image).length} 題,全中級）</button>
     </section>`;
   const selectedKeys = () => new Set([...view.querySelectorAll('.rng:checked')].map((c) => c.value));
   const kw = () => $('#pr-kw').value.trim().toLowerCase();
@@ -314,7 +322,8 @@ function home() {
   };
   const pickPool = () => {
     const keys = selectedKeys();
-    return DATA.questions.filter((q) => keys.has(rangeKey(q)) && matchKw(q));
+    const src = $('#pr-source') ? $('#pr-source').value : '';
+    return DATA.questions.filter((q) => keys.has(rangeKey(q)) && matchKw(q) && (!src || srcOf(q) === src));
   };
   const updateSum = () => {
     const keys = selectedKeys();
@@ -322,6 +331,7 @@ function home() {
   };
   view.querySelectorAll('.rng').forEach((c) => (c.onchange = updateSum));
   $('#pr-kw').oninput = updateSum;
+  $('#pr-source').onchange = updateSum;
   $('#sel-all').onclick = () => { view.querySelectorAll('.rng').forEach((c) => (c.checked = true)); updateSum(); };
   $('#sel-none').onclick = () => { view.querySelectorAll('.rng').forEach((c) => (c.checked = false)); updateSum(); };
   $('#pr-start').onclick = () => {
@@ -363,7 +373,7 @@ function runPractice(pool, opts = {}) {
       <section class="card">
         <div class="row"><span class="muted">${i + 1} / ${pool.length}</span>
           <button class="star ${p.starred ? 'on' : ''}" id="star">${p.starred ? '★ 已標' : '☆ 標記'}</button></div>
-        <p class="qmeta muted">${esc(q.subject)}${q.topic ? '・' + esc(q.topic) : ''}</p>
+        <p class="qmeta muted">${esc(q.subject)}${q.topic ? '・' + esc(q.topic) : ''}${q.source === '學習指引' ? ' <span class="src-tag">學習指引範例</span>' : ''}</p>
         <h3>${esc(q.question)}</h3>
         ${q.image ? `<img class="qfig" src="${esc(q.image)}" alt="題目附圖" loading="lazy">` : ''}
         <div id="opts">${q.options.map((o, k) => `<button class="opt" data-k="${k}">${esc(o)}</button>`).join('')}</div>
@@ -632,7 +642,7 @@ function settings() {
 
       <h3>學習目標</h3>
       <label>每日目標題數
-        <input id="set-goal" type="number" min="1" max="611" value="${dailyGoal()}">
+        <input id="set-goal" type="number" min="1" max="790" value="${dailyGoal()}">
       </label>
       <label>考試日期（首頁倒數用）
         <input id="set-exam" type="date" value="${(store.settings && store.settings.examDate) || ''}">
