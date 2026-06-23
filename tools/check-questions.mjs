@@ -3,7 +3,7 @@
 import fs from 'fs';
 
 const q = JSON.parse(fs.readFileSync('questions.json', 'utf8')).questions;
-const assets = fs.readdirSync('assets').filter((f) => /\.(png|jpg|jpeg)$/i.test(f));
+const assets = fs.readdirSync('assets').filter((f) => /\.(webp|png|jpg|jpeg)$/i.test(f));
 const errors = [];
 const warns = [];
 
@@ -21,7 +21,7 @@ const withImg = q.filter((x) => x.image);
 const used = new Set();
 for (const x of withImg) {
   if (!fs.existsSync(x.image)) errors.push(`${x.id}:image 指到的檔不存在(${x.image})`);
-  const want = `assets/${x.id}.png`;
+  const want = `assets/${x.id}.webp`;
   if (x.image !== want) errors.push(`${x.id}:image 檔名不符慣例,應為 ${want}(現為 ${x.image})`);
   used.add(x.image.replace(/^assets\//, ''));
 }
