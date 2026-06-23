@@ -350,7 +350,8 @@ function home() {
   $('#pr-images').onclick = () => runPractice(shuffle(DATA.questions.filter((q) => q.image)));
   $('#challenge').onclick = () => { store.challengeDone = today(); save(); runPractice(dailyChallenge()); };
   $('#share').onclick = async () => {
-    const txt = `我在 iPAS AI 應用規劃師模擬考刷題：連續打卡 ${strk} 天、今日 ${dc}/${g} 題。一起來練歷屆考古題！`;
+    const cd = (du != null && du >= 0) ? `、距考試 ${du} 天` : '';
+    const txt = `我在 iPAS AI 應用規劃師模擬考刷題：連續打卡 ${strk} 天、今日 ${dc}/${g} 題${cd}。一起來練歷屆考古題！`;
     const url = location.origin + location.pathname;
     if (navigator.share) { try { await navigator.share({ title: 'iPAS 模考練習', text: txt, url }); } catch {} }
     else { try { await navigator.clipboard.writeText(`${txt} ${url}`); $('#share').textContent = '已複製連結'; } catch {} }
