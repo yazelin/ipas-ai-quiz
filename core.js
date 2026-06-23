@@ -80,11 +80,12 @@ export function toMarkdown(questions, progress, title = 'iPAS 筆記') {
     if (!p || (!p.starred && !p.note)) continue;
     n++;
     lines.push(`## ${n}. [${q.subject}] ${q.question}`);
-    lines.push(`- 正解：${q.options[q.answer]}`);
+    if (q.image) lines.push('- (此題含附圖,請對照站上題目)');
+    q.options.forEach((o, i) => lines.push(`- ${'ABCD'[i]}. ${o}${i === q.answer ? ' ✓（正解）' : ''}`));
     if (q.explanation) lines.push(`- 解析：${q.explanation}`);
     if (p.note) lines.push(`- 我的筆記：${p.note}`);
     lines.push('');
   }
-  if (n === 0) lines.push('_(還沒有星標的題目)_');
+  if (n === 0) lines.push('_(還沒有星標或筆記的題目)_');
   return lines.join('\n');
 }
