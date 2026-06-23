@@ -288,7 +288,6 @@ function home() {
     <section class="card">
       <h2>練習模式</h2>
       <p class="muted">即時看答案與解析。勾選要練的範圍，預設全選。</p>
-      <button id="pr-images">只練看圖題（${DATA.questions.filter((q) => q.image).length} 題,全中級）</button>
       <div class="row range-head"><span class="muted" id="range-sum"></span>
         <span><button id="sel-all">全選</button><button id="sel-none">清除</button></span></div>
       <div id="ranges">${ranges}</div>
@@ -312,6 +311,7 @@ function home() {
         </select>
       </label>
       <button class="primary" id="pr-start">開始練習</button>
+      <button class="primary alt" id="pr-images">只練看圖題（${DATA.questions.filter((q) => q.image).length} 題,全中級）</button>
     </section>`;
   const selectedKeys = () => new Set([...view.querySelectorAll('.rng:checked')].map((c) => c.value));
   const kw = () => $('#pr-kw').value.trim().toLowerCase();
