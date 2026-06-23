@@ -340,6 +340,8 @@ function home() {
 
 function runPractice(pool, opts = {}) {
   let i = 0;
+  let right = 0, wrong = 0;
+  const sessionWrong = [];
   if (!pool.length) {
     view.innerHTML = `<section class="card"><p>沒有符合的題目。</p></section>`;
     return;
@@ -365,7 +367,7 @@ function runPractice(pool, opts = {}) {
     const p = qp(q.id);
     const correct = k === q.answer;
     p.attempts++;
-    if (correct) p.correct++; else p.wrong++;
+    if (correct) { p.correct++; right++; } else { p.wrong++; wrong++; sessionWrong.push(q); }
     p.box = nextBox(p.box, correct);
     logRecent(correct);
     bumpDaily(correct);
@@ -383,7 +385,23 @@ function runPractice(pool, opts = {}) {
       <label class="note">筆記<textarea id="note" rows="2" placeholder="寫下你的理解或記憶點…">${esc(p.note || '')}</textarea></label>
       <button class="primary" id="next">${i + 1 < pool.length ? '下一題' : '完成'}</button>`;
     $('#note').oninput = (e) => { p.note = e.target.value; save(); };
-    $('#next').onclick = () => { i++; i < pool.length ? render() : home(); };
+    $('#next').onclick = () => { i++; i < pool.length ? render() : finish(); };
+  };
+  const finish = () => {
+    const total = right + wrong;
+    const pct = total ? Math.round((right / total) * 1000) / 10 : 0;
+    view.innerHTML = `
+      <section class="card">
+        <h2>練習完成</h2>
+        <p class="score">${pct}％</p>
+        <p>這組 ${total} 題,答對 ${right}、答錯 ${wrong}</p>
+        ${sessionWrong.length ? '<button class="primary" id="redo-wrong">只練這次錯的</button>' : '<p class="muted">這組全對,讚!</p>'}
+        <button id="again">再練一次</button>
+        <button id="back">回首頁</button>
+      </section>`;
+    if (sessionWrong.length) $('#redo-wrong').onclick = () => runPractice(sessionWrong.slice());
+    $('#again').onclick = () => runPractice(shuffle(pool.slice()));
+    $('#back').onclick = home;
   };
   render();
 }
