@@ -44,7 +44,8 @@ assert.deepEqual(wrongQuestionIds(qs, prog), ['b']);
 // markdown 匯出(收星標)
 const md = toMarkdown(qs, { c: { starred: true, note: '記得 RAG' } });
 assert.ok(md.includes('[S2]'));
-assert.ok(md.includes('正解：y'));
+assert.ok(md.includes('A. x'), '要列出所有選項');
+assert.ok(md.includes('B. y ✓（正解）'), '正解選項要標 ✓');
 assert.ok(md.includes('我的筆記：記得 RAG'));
 assert.ok(!md.includes('qa'), '沒星標也沒筆記的不該出現');
 
