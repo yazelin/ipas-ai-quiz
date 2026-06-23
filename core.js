@@ -71,13 +71,13 @@ export function wrongQuestionIds(questions, progress) {
     .map((q) => q.id);
 }
 
-// 把星標題 + 解析 + 筆記整理成 markdown,供匯出。
-export function toMarkdown(questions, progress, title = 'iPAS 錯題筆記') {
+// 把「有星標或有筆記」的題 + 解析 + 筆記整理成 markdown,供匯出。
+export function toMarkdown(questions, progress, title = 'iPAS 筆記') {
   const lines = [`# ${title}`, ''];
   let n = 0;
   for (const q of questions) {
     const p = progress[q.id];
-    if (!p || !p.starred) continue;
+    if (!p || (!p.starred && !p.note)) continue;
     n++;
     lines.push(`## ${n}. [${q.subject}] ${q.question}`);
     lines.push(`- 正解：${q.options[q.answer]}`);

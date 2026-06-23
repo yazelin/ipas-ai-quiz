@@ -486,6 +486,31 @@ function wrongbook() {
   if (ids.length) $('#drill').onclick = () => runPractice(shuffle(list));
 }
 
+function notes() {
+  setNav('notes');
+  const items = DATA.questions.filter((q) => { const p = store.q[q.id]; return p && (p.note || p.starred); });
+  view.innerHTML = `
+    <section class="card">
+      <h2>我的筆記</h2>
+      <p class="muted">有寫筆記、或加星 ⭐ 的題目都在這。筆記可直接在下面改,會自動存。</p>
+      ${items.length
+        ? '<button id="exp-notes">匯出筆記（Markdown）</button>'
+        : '<p>還沒有筆記或星標題。練習時在題目下方寫筆記、或點 ☆ 加星,就會出現在這。</p>'}
+      ${items.map((q) => {
+        const p = qp(q.id);
+        return `<div class="note-item">
+          <div class="row"><span class="muted">${p.starred ? '⭐ ' : ''}${esc(q.subject)}</span>
+            <button class="goto" data-id="${esc(q.id)}">前往該題</button></div>
+          <p class="qn">${esc(q.question)}</p>
+          <textarea class="note-edit" data-id="${esc(q.id)}" rows="2" placeholder="寫下你的理解或記憶點…">${esc(p.note || '')}</textarea>
+        </div>`;
+      }).join('')}
+    </section>`;
+  view.querySelectorAll('.note-edit').forEach((t) => (t.oninput = (e) => { qp(e.target.dataset.id).note = e.target.value; save(); }));
+  view.querySelectorAll('.goto').forEach((b) => (b.onclick = () => { const q = DATA.questions.find((x) => x.id === b.dataset.id); if (q) runPractice([q]); }));
+  if (items.length) $('#exp-notes').onclick = () => download('ipas-notes.md', toMarkdown(DATA.questions, store.q), 'text/markdown');
+}
+
 function stats() {
   setNav('stats');
   const s = progressStats(DATA.questions, store.q);
@@ -591,7 +616,7 @@ function settings() {
       <button id="exp">匯出進度（JSON）</button>
       <button id="imp-btn">匯入進度（JSON）</button>
       <input id="imp" type="file" accept="application/json" hidden>
-      <button id="exp-md">匯出星標筆記（Markdown）</button>
+      <button id="exp-md">匯出筆記（Markdown）</button>
 
       <h3 class="danger">重設</h3>
       <button class="danger" id="reset">清除本機所有進度</button>
@@ -677,7 +702,7 @@ function settings() {
   };
 }
 
-const ROUTES = { home, mock: mockSetup, wrong: wrongbook, stats, settings };
+const ROUTES = { home, mock: mockSetup, wrong: wrongbook, notes, stats, settings };
 
 // ---- boot ----
 async function boot() {
