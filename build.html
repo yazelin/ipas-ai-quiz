@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>用 AI 做你自己的前端 | iPAS AI 應用規劃師題庫</title>
+<meta name="description" content="iPAS AI 應用規劃師題庫免費開放串接(CORS)。複製現成 prompt 丟給你的 AI,幾分鐘做出自己的刷題前端。">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="alternate icon" href="favicon.ico">
+<style>
+  :root { --c-bg:#f6f7f9; --c-card:#fff; --c-ink:#1c2330; --c-muted:#6b7280; --c-line:#e5e7eb; --c-accent:#2563eb; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:system-ui,-apple-system,"Noto Sans TC",sans-serif; background:var(--c-bg); color:var(--c-ink); line-height:1.7; }
+  main { max-width:760px; margin:0 auto; padding:24px 16px 64px; }
+  h1 { font-size:24px; margin:8px 0; }
+  h2 { font-size:18px; margin:28px 0 8px; }
+  p, li { font-size:15px; }
+  .muted { color:var(--c-muted); }
+  a { color:var(--c-accent); }
+  .card { background:var(--c-card); border:1px solid var(--c-line); border-radius:14px; padding:18px 20px; margin:14px 0; }
+  table { width:100%; border-collapse:collapse; margin:8px 0; }
+  th, td { text-align:left; padding:8px; border-bottom:1px solid var(--c-line); font-size:13px; word-break:break-all; }
+  code { background:#eef0f3; padding:1px 5px; border-radius:4px; font-size:13px; }
+  pre { background:#0f172a; color:#e2e8f0; padding:16px; border-radius:10px; overflow:auto; font-size:13px; line-height:1.6; white-space:pre-wrap; }
+  .promptbar { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:8px; }
+  button.copy { background:var(--c-accent); color:#fff; border:0; padding:9px 16px; border-radius:8px; font-size:14px; cursor:pointer; }
+  .back { display:inline-block; margin-bottom:8px; font-size:14px; }
+  .note { background:#fef3c7; color:#92400e; border-radius:8px; padding:10px 12px; font-size:13px; }
+</style>
+</head>
+<body>
+<main>
+  <a class="back" href="./">← 回模擬考練習站</a>
+  <h1>用 AI 做你自己的前端</h1>
+  <p class="muted">這個題庫是<strong>免費開放串接</strong>的(已開 CORS)。你不用會寫程式 —— 把下面這段 prompt 複製給你的 AI(ChatGPT / Claude / Gemini 都行),它就能幫你做出一個能抓我們題庫的刷題前端。當然你也可以自己接。</p>
+
+  <h2>① 資料在哪裡</h2>
+  <div class="card">
+    <p>都是靜態檔放在 GitHub Pages,任何網域的前端可直接 <code>fetch</code>,免後端、免金鑰。</p>
+    <table>
+      <tr><th>資源</th><th>網址</th></tr>
+      <tr><td>題庫</td><td>https://yazelin.github.io/ipas-ai-quiz/questions.json</td></tr>
+      <tr><td>每日觀念卡</td><td>https://yazelin.github.io/ipas-ai-quiz/concepts.json</td></tr>
+      <tr><td>考試日期</td><td>https://yazelin.github.io/ipas-ai-quiz/exam-dates.json</td></tr>
+      <tr><td>帶圖題的圖</td><td>https://yazelin.github.io/ipas-ai-quiz/assets/&lt;題目 id&gt;.webp</td></tr>
+    </table>
+    <p class="muted">完整欄位說明見 <a href="https://github.com/yazelin/ipas-ai-quiz/blob/master/AGENTS.md" target="_blank" rel="noopener">AGENTS.md</a>。</p>
+  </div>
+
+  <h2>② 複製這段 prompt 給你的 AI</h2>
+  <div class="card">
+    <div class="promptbar">
+      <span class="muted">貼到 ChatGPT / Claude / Gemini</span>
+      <button class="copy" id="copy">複製 prompt</button>
+    </div>
+    <pre id="prompt">幫我做一個 iPAS「AI 應用規劃師」線上刷題練習網頁。題庫是公開的 JSON,請直接用 fetch 抓,不要自己編題目或答案。
+
+資料來源(已開 CORS,可直接跨網域 fetch):
+https://yazelin.github.io/ipas-ai-quiz/questions.json
+
+題庫格式:
+{
+  "meta": { ... },
+  "questions": [
+    {
+      "question": "題幹文字",
+      "options": ["選項A","選項B","選項C","選項D"],   // 剛好 4 個
+      "answer": 2,                                       // 正解 0-based 索引,0=A 1=B 2=C 3=D
+      "explanation": "解析文字",
+      "level": "初級",                                   // 初級 / 中級
+      "subject": "科目1：人工智慧基礎概論",
+      "chapter": "機器學習",
+      "source": "學習指引",                              // 缺省=歷屆考古題;"學習指引"=官方範例
+      "image": "assets/xxx.webp"                         // 選填;網址 = https://yazelin.github.io/ipas-ai-quiz/ + 這個值
+    }
+  ]
+}
+
+請用「單一 HTML 檔 + 原生 JavaScript(不要任何框架)」做出:
+1. 隨機抽題練習,顯示題幹與 4 個選項。
+2. 點選項後立刻顯示「對/錯 + 正解 + 解析」;若該題有 image 就把圖顯示出來。
+3. 可以篩選 level(初級/中級)、subject 或 source。
+4. 簡單統計:答了幾題、答對率。
+5. 介面簡潔、手機可用。
+
+請直接給我一個完整、可直接用瀏覽器打開的 HTML 檔。</pre>
+  </div>
+
+  <div class="note">這個 prompt 給的是「最小可動」版。你可以加要求,例如:錯題本、計時模擬考、深色模式、把題庫快取起來離線也能用。</div>
+
+  <h2>③ 進度互通(選用,進階)</h2>
+  <div class="card">
+    <p>本站「設定 → 匯出進度(JSON)」會下載 <code>ipas-progress.json</code>。你的前端可以讓使用者匯入這個檔、還原他的作答進度 —— 因為<strong>題目 id 是穩定的</strong>,跨前端通用。</p>
+    <p>核心結構(只列還原會用到的):</p>
+    <pre>{
+  "q": {
+    "114-2-m-s2-q39": {
+      "box": 3,          // Leitner 盒:1=新/剛答錯,連對 2 次到 3 = 已掌握
+      "attempts": 4,     // 總作答次數
+      "correct": 3,      // 答對次數
+      "wrong": 1,        // 答錯次數
+      "note": "我的筆記",
+      "starred": true    // 是否加星
+    }
+    // …其餘題目,key 都是題目 id(對應 questions.json 的 q.id)
+  },
+  "recent": [1,0,1,1],          // 最近 50 次:1=對 0=錯
+  "history": { "2026-06-23": { "a": 12, "c": 8 } },  // 每日 答題/答對
+  "settings": { "dailyGoal": 20, "examDate": "2026-08-15" }
+}</pre>
+    <p class="muted">用 <code>q[題目id]</code> 對回 <code>questions.json</code> 的題,就能還原掌握度、筆記、星標、統計。</p>
+  </div>
+
+  <h2>④ 版權提醒</h2>
+  <div class="card">
+    <p>程式碼 MIT(林亞澤)。題幹為 iPAS 官方公告試題與學習指引(著作權屬官方);歷屆題解析為本站原創、學習指引題之解析屬官方。<strong>串接或散布前請自行確認官方重製條款。</strong></p>
+  </div>
+
+  <p class="muted"><a href="./">← 回練習站</a> · <a href="https://github.com/yazelin/ipas-ai-quiz" target="_blank" rel="noopener">GitHub 原始碼</a></p>
+</main>
+<script>
+  document.getElementById('copy').onclick = async () => {
+    try {
+      await navigator.clipboard.writeText(document.getElementById('prompt').textContent);
+      const b = document.getElementById('copy'); b.textContent = '已複製 ✓';
+      setTimeout(() => (b.textContent = '複製 prompt'), 1800);
+    } catch {}
+  };
+</script>
+</body>
+</html>
