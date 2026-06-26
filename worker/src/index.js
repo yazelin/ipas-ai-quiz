@@ -73,7 +73,7 @@ export default {
       const rec = JSON.parse((await env.SYNC.get('push:' + b.code.toLowerCase())) || 'null');
       if (!rec) return json({ error: 'not_subscribed' }, 404);
       try {
-        const r = await sendPush(env, rec.subscription, { title: 'iPAS 模考測試通知', body: '推播設定成功!每天會在你設定的時間提醒你刷題。', url: '/' });
+        const r = await sendPush(env, rec.subscription, { title: 'iPAS 模考測試通知', body: '推播設定成功!每天會在你設定的時間提醒你刷題。', url: './' });
         return json({ ok: true, status: r.status });
       } catch (e) { return json({ error: String(e) }, 500); }
     }
@@ -101,7 +101,7 @@ export default {
           await sendPush(env, rec.subscription, {
             title: 'iPAS 模考 · 今天還沒練',
             body: '花 5 分鐘刷幾題,保持手感、別讓連續打卡斷掉!',
-            url: '/',
+            url: './',
           }).catch(() => {});
         }
       } while (cursor);

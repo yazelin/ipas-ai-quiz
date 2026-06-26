@@ -1,6 +1,6 @@
 // 離線快取:app shell + 題庫。stale-while-revalidate(先給快取、背景更新)。
 // 改版要更新快取時,把 CACHE 版號 +1。
-const CACHE = 'ipas-v39';
+const CACHE = 'ipas-v40';
 const SHELL = ['./', 'index.html', 'build.html', 'app.js', 'core.js', 'manifest.json', 'favicon.svg', 'questions.json', 'concepts.json', 'exam-dates.json', 'icon-192.png', 'icon-512.png'];
 
 self.addEventListener('install', (e) => {
@@ -27,9 +27,12 @@ self.addEventListener('push', (e) => {
 });
 self.addEventListener('notificationclick', (e) => {
   e.notification.close();
-  const url = (e.notification.data && e.notification.data.url) || './';
-  e.waitUntil(self.clients.matchAll({ type: 'window' }).then((ws) => {
-    for (const w of ws) if ('focus' in w) return w.focus();
+  // 一律錨定到本 app 的 scope:payload 帶絕對路徑 '/' 會開到網域根(GitHub Pages 子站會跑掉)
+  const raw = (e.notification.data && e.notification.data.url) || './';
+  const url = new URL(raw.replace(/^\//, './'), self.registration.scope).href;
+  // includeUncontrolled:沒加抓不到已安裝 PWA 的視窗 → 會在瀏覽器又開一個而非聚焦 app
+  e.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((ws) => {
+    for (const w of ws) if (w.url.startsWith(self.registration.scope) && 'focus' in w) return w.focus();
     return self.clients.openWindow(url);
   }));
 });
