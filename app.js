@@ -12,6 +12,7 @@ let CONCEPTS = [];
 let EXAMINFO = null;
 let store = load();
 let pushTimer = null;
+let dirty = false; // 有未上傳的本機變動才寫 KV(localStorage 才是本機真相,KV 只跨裝置)
 
 // PWA 安裝：接管 beforeinstallprompt，顯示自家「安裝」按鈕（Android/桌面 Chrome）
 // 用單機旗標記住「已關掉/已安裝」就別再顯示（install 狀態每台不同，故不進同步 store）
@@ -114,22 +115,28 @@ function bumpDaily(correct) {
 function save() {
   store.updatedAt = Date.now();
   localStorage.setItem(STORE_KEY, JSON.stringify(store));
+  dirty = true;
   schedulePush();
 }
 
 // ---- 雲端同步（同步碼，免帳號） ----
+// 寫入策略:checkpoint(交卷/練習完成/切走關頁)立即 flush;持續作答只在停頓 30s 後補寫一次。
+// dirty gating = 沒變動就絕不寫,省 KV 寫入額度。
 function schedulePush() {
   if (!SYNC_URL) return;
   clearTimeout(pushTimer);
-  pushTimer = setTimeout(pushSync, 5000); // ponytail: debounce 5s，夠快又不會每題寫一次 KV
+  pushTimer = setTimeout(pushSync, 30000); // ponytail: debounce 30s 只當長 session 的保底;真正的寫在 checkpoint
 }
-async function pushSync() {
+async function pushSync(opts = {}) {
   clearTimeout(pushTimer); pushTimer = null;
   if (!SYNC_URL || !store.syncCode) return false;
+  if (!dirty) return true; // 沒有未上傳的變動就不寫 KV
   try {
     const r = await fetch(`${SYNC_URL}/sync/${encodeURIComponent(store.syncCode)}`, {
       method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(store),
+      keepalive: opts.keepalive || false, // 關頁/切走時讓請求活過頁面卸載
     });
+    if (r.ok) dirty = false;
     return r.ok;
   } catch { return false; }
 }
@@ -409,6 +416,7 @@ function runPractice(pool, opts = {}) {
     $('#next').onclick = () => { i++; i < pool.length ? render() : finish(); };
   };
   const finish = () => {
+    pushSync(); // checkpoint:練習完成立即上傳
     const total = right + wrong;
     const pct = total ? Math.round((right / total) * 1000) / 10 : 0;
     view.innerHTML = `
@@ -496,6 +504,7 @@ function runMock(pool, mins) {
       bumpDaily(correct);
     });
     save();
+    pushSync(); // checkpoint:交卷立即上傳
     const r = scoreExam(pool, answers);
     view.innerHTML = `
       <section class="card">
@@ -820,7 +829,7 @@ async function boot() {
   if (DATA.meta?.note) { const n = $('#banner'); n.textContent = DATA.meta.note; n.hidden = false; }
   localStorage.setItem(STORE_KEY, JSON.stringify(store)); // 落地可能新生成的 syncCode(不動 updatedAt)
   if (SYNC_URL) await pullSync(); // 開啟先拉雲端，單人多裝置就不會互蓋
-  document.addEventListener('visibilitychange', () => { if (document.hidden) pushSync(); });
+  document.addEventListener('visibilitychange', () => { if (document.hidden) pushSync({ keepalive: true }); }); // checkpoint:切走/關頁前 flush
   home();
 }
 boot();
