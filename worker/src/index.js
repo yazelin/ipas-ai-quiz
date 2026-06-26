@@ -34,7 +34,8 @@ export default {
     // ---- 同步 ----
     const sm = url.pathname.match(/^\/sync\/([^/]+)$/);
     if (sm) {
-      const code = decodeURIComponent(sm[1]);
+      let code;
+      try { code = decodeURIComponent(sm[1]); } catch { return json({ error: 'bad_code' }, 400); } // 壞的百分號編碼(爬蟲亂打)別讓 worker 拋例外
       if (!CODE_RE.test(code)) return json({ error: 'bad_code' }, 400);
       const key = 's:' + code.toLowerCase();
       if (req.method === 'GET') {
