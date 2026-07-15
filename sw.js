@@ -44,7 +44,7 @@ self.addEventListener('fetch', (e) => {
   if (r.method !== 'GET' || new URL(r.url).origin !== location.origin) return;
   e.respondWith(caches.open(CACHE).then(async (c) => {
     const cached = await c.match(r);
-    const net = fetch(r).then((res) => { if (res && res.ok) c.put(r, res.clone()); return res; }).catch(() => cached);
+    const net = fetch(r).then((res) => { if (res && res.ok) c.put(r, res.clone()).catch(() => {}); return res; }).catch(() => cached);
     return cached || net;
   }));
 });
