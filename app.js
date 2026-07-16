@@ -34,7 +34,7 @@ function load() {
     const s = JSON.parse(localStorage.getItem(STORE_KEY));
     if (s && s.q) return s;
   } catch {}
-  return { v: 1, syncCode: makeCode(), q: {}, recent: [], updatedAt: 0 };
+  return { v: 1, syncCode: makeCode(), codeFresh: true, q: {}, recent: [], updatedAt: 0 };
 }
 // 記一筆最近作答結果(1/0)，保留最近 50 筆，供「近期正確率」
 function logRecent(correct) {
@@ -157,11 +157,34 @@ async function pullSync() {
 function qp(id) {
   return (store.q[id] ||= { box: 1, attempts: 0, correct: 0, wrong: 0, note: '', starred: false });
 }
+// 碼空間 40×40×9000 = 1,440 萬(舊版 10×10×90=9,000,估計已撞出上百對共用碼)
 function makeCode() {
-  const a = ['fox', 'owl', 'koi', 'elm', 'jade', 'mint', 'sage', 'wren', 'lark', 'reef'];
-  const b = ['river', 'cloud', 'stone', 'ember', 'tide', 'grove', 'dune', 'frost', 'maple', 'comet'];
+  const a = ['fox', 'owl', 'koi', 'elm', 'jade', 'mint', 'sage', 'wren', 'lark', 'reef',
+    'ash', 'birch', 'cedar', 'crane', 'deer', 'dove', 'fern', 'finch', 'gull', 'hare',
+    'hawk', 'ibis', 'iris', 'kelp', 'kiwi', 'lily', 'lotus', 'lynx', 'mole', 'moss',
+    'moth', 'newt', 'orca', 'pine', 'plum', 'quail', 'seal', 'swan', 'teal', 'wolf'];
+  const b = ['river', 'cloud', 'stone', 'ember', 'tide', 'grove', 'dune', 'frost', 'maple', 'comet',
+    'breeze', 'brook', 'canyon', 'cave', 'cliff', 'coast', 'coral', 'creek', 'delta', 'fjord',
+    'gale', 'glade', 'gorge', 'harbor', 'inlet', 'lagoon', 'ledge', 'marsh', 'mesa', 'mist',
+    'oasis', 'peak', 'pond', 'rain', 'ridge', 'shore', 'sky', 'snow', 'storm', 'vale'];
   const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
-  return `${pick(a)}-${pick(b)}-${Math.floor(10 + Math.random() * 90)}`;
+  return `${pick(a)}-${pick(b)}-${Math.floor(1000 + Math.random() * 9000)}`;
+}
+// 自動產生的新碼先跟雲端查重再定案(雙保險):只碰 codeFresh 的全新 store,
+// 手動輸入的碼與既有使用者一律不動。離線或伺服器出錯就放行,不擋使用者。
+async function ensureFreshCode() {
+  if (!store.codeFresh) return;
+  if (SYNC_URL && !store.updatedAt && !Object.keys(store.q || {}).length) {
+    for (let i = 0; i < 3; i++) {
+      try {
+        const r = await fetch(`${SYNC_URL}/sync/${encodeURIComponent(store.syncCode)}`);
+        if (!r.ok) break; // 404 = 沒人用,定案;5xx 也放行
+        store.syncCode = makeCode(); // 被占用 → 重抽再查
+      } catch { break; }
+    }
+  }
+  delete store.codeFresh;
+  localStorage.setItem(STORE_KEY, JSON.stringify(store)); // 只落地碼,不動 updatedAt
 }
 
 // ---- helpers ----
@@ -773,8 +796,11 @@ function settings() {
       else alert('檔案格式不符。');
     } catch { alert('讀取失敗。'); }
   };
-  $('#reset').onclick = () => {
-    if (confirm('確定清除本機所有作答進度與筆記？')) { store = { v: 1, syncCode: makeCode(), q: {} }; save(); settings(); }
+  $('#reset').onclick = async () => {
+    if (!confirm('確定清除本機所有作答進度與筆記？')) return;
+    store = { v: 1, syncCode: makeCode(), codeFresh: true, q: {} };
+    await ensureFreshCode(); // 新碼先查重,再 save(save 會標 dirty 上傳)
+    save(); settings();
   };
   $('#reset-stats').onclick = () => {
     if (!confirm('重設統計?掌握度、正確率、錯題本、打卡、趨勢都歸零;保留筆記、星標與設定。')) return;
@@ -828,6 +854,7 @@ async function boot() {
   if (DATA.meta?.title) $('#title').textContent = DATA.meta.title;
   if (DATA.meta?.note) { const n = $('#banner'); n.textContent = DATA.meta.note; n.hidden = false; }
   localStorage.setItem(STORE_KEY, JSON.stringify(store)); // 落地可能新生成的 syncCode(不動 updatedAt)
+  await ensureFreshCode(); // 全新自動碼先查重(要在 pull 之前,否則撞碼會拉到陌生人的進度)
   if (SYNC_URL) await pullSync(); // 開啟先拉雲端，單人多裝置就不會互蓋
   document.addEventListener('visibilitychange', () => { if (document.hidden) pushSync({ keepalive: true }); }); // checkpoint:切走/關頁前 flush
   home();
