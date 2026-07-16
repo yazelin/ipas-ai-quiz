@@ -2,9 +2,17 @@ name = "ipas-quiz-sync"
 main = "src/index.js"
 compatibility_date = "2026-06-01"
 
-# 部署前先建 KV namespace 並把 id 填進來:
-#   npx wrangler kv namespace create SYNC
-# 把指令印出的 id 貼到下面,然後 npx wrangler deploy
+# 部署前先建 D1 並把 database_id 填進來:
+#   npx wrangler d1 create ipas-quiz-sync
+#   npx wrangler d1 execute ipas-quiz-sync --remote --file schema.sql
+# 然後 npx wrangler deploy
+[[d1_databases]]
+binding = "DB"
+database_name = "ipas-quiz-sync"
+database_id = "a861f54c-1a47-4ede-9910-bd38bb8f5f4d"
+
+# 舊 KV(2026-07 遷去 D1 前的資料)——只當唯讀 fallback,收斂後可整塊刪掉。
+# fork 自架的人:直接刪這塊(worker 沒綁 SYNC 也能跑)。
 [[kv_namespaces]]
 binding = "SYNC"
 id = "a38f175fd0bf48b0be7c8d997bc1cd04"
