@@ -22,7 +22,8 @@ async function readKey(env, key) {
   return env.SYNC ? env.SYNC.get(key) : null; // ponytail: 遷移過渡,拔 KV binding 時連這行一起刪
 }
 const writeKey = (env, key, value) =>
-  env.DB.prepare('INSERT INTO kv (key, value) VALUES (?1, ?2) ON CONFLICT(key) DO UPDATE SET value = excluded.value').bind(key, value).run();
+  env.DB.prepare('INSERT INTO kv (key, value, updated_at) VALUES (?1, ?2, ?3) ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at')
+    .bind(key, value, Date.now()).run();
 async function deleteKey(env, key) {
   await env.DB.prepare('DELETE FROM kv WHERE key = ?1').bind(key).run();
   if (env.SYNC) await env.SYNC.delete(key); // 舊 KV 也刪,免得 fallback 把退訂的又撿回來
@@ -44,6 +45,13 @@ async function sendPush(env, sub, payloadObj) {
 export default {
   async fetch(req, env) {
     if (req.method === 'OPTIONS') return new Response(null, { headers: CORS });
+    // workers.dev 沒有自己的 zone,掛不了 dashboard 的 Rate Limiting Rule,改用原生 Workers Rate Limiting binding:
+    // 只在 Worker 內比對 IP 出手次數,不落地存 IP。
+    if (env.RATE_LIMITER) {
+      const ip = req.headers.get('CF-Connecting-IP') || 'unknown';
+      const rl = await env.RATE_LIMITER.limit({ key: ip });
+      if (!rl.success) return json({ error: 'rate_limited' }, 429);
+    }
     const url = new URL(req.url);
 
     // ---- 同步 ----

@@ -21,6 +21,13 @@ id = "a38f175fd0bf48b0be7c8d997bc1cd04"
 [triggers]
 crons = ["0 * * * *"]
 
+# 擋爬碼/濫用:同 IP 每 60 秒最多 60 次請求(整台 worker 共用一個桶,不分路徑)。
+# 純 in-worker 比對,不存 IP、不需要 zone。
+[[ratelimits]]
+name = "RATE_LIMITER"
+namespace_id = "1001"
+simple = { limit = 60, period = 60 }
+
 [vars]
 VAPID_PUBLIC = "BNn4Lwq818aHx8cb0LrcQ6IpRgHb9B3P_BOqusct-uFyJPQ4hlDrIOirliHoNdbbg5tg8zWfzBg5SZ0yBhRq7zA"
 ADMIN_CONTACT = "mailto:yazelin@ching-tech.com"
