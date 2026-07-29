@@ -1,6 +1,5 @@
 // 後端:① 同步碼進度同步(/sync/:code)② Web Push 每日提醒(/push/* + cron)
-// 存放:D1(kv 表)。KV binding 只剩唯讀 fallback(2026-07 從 KV 遷來,免費層每日 1000 次寫入被刷題流量吃滿);
-// 等 D1 收斂(backfill 完+跑一陣子)就可以把 SYNC binding 和 fallback 一起拔掉。
+// 存放:D1(kv 表)。
 import { ApplicationServerKeys, generatePushHTTPRequest } from 'webpush-webcrypto';
 
 const CODE_RE = /^[a-z]+-[a-z]+-\d{2,4}$/i;
@@ -15,19 +14,16 @@ const json = (obj, status = 200) =>
 
 const ymdUTC = (d) => `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`;
 
-// ---- 存取層:D1 為主,舊 KV 資料唯讀 fallback ----
+// ---- 存取層:D1 ----
 async function readKey(env, key) {
   const row = await env.DB.prepare('SELECT value FROM kv WHERE key = ?1').bind(key).first();
-  if (row) return row.value;
-  return env.SYNC ? env.SYNC.get(key) : null; // ponytail: 遷移過渡,拔 KV binding 時連這行一起刪
+  return row ? row.value : null;
 }
 const writeKey = (env, key, value) =>
   env.DB.prepare('INSERT INTO kv (key, value, updated_at) VALUES (?1, ?2, ?3) ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at')
     .bind(key, value, Date.now()).run();
-async function deleteKey(env, key) {
-  await env.DB.prepare('DELETE FROM kv WHERE key = ?1').bind(key).run();
-  if (env.SYNC) await env.SYNC.delete(key); // 舊 KV 也刪,免得 fallback 把退訂的又撿回來
-}
+const deleteKey = (env, key) =>
+  env.DB.prepare('DELETE FROM kv WHERE key = ?1').bind(key).run();
 
 async function sendPush(env, sub, payloadObj) {
   const keys = await ApplicationServerKeys.fromJSON({ publicKey: env.VAPID_PUBLIC, privateKey: env.VAPID_PRIVATE });

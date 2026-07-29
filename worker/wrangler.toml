@@ -11,12 +11,6 @@ binding = "DB"
 database_name = "ipas-quiz-sync"
 database_id = "a861f54c-1a47-4ede-9910-bd38bb8f5f4d"
 
-# 舊 KV(2026-07 遷去 D1 前的資料)——只當唯讀 fallback,收斂後可整塊刪掉。
-# fork 自架的人:直接刪這塊(worker 沒綁 SYNC 也能跑)。
-[[kv_namespaces]]
-binding = "SYNC"
-id = "a38f175fd0bf48b0be7c8d997bc1cd04"
-
 # 每小時整點跑,檢查誰到提醒時間且今天還沒練
 [triggers]
 crons = ["0 * * * *"]

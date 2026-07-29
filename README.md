@@ -90,11 +90,11 @@ npx web-push generate-vapid-keys               # VAPID 金鑰
 npx wrangler deploy                            # 取得 https://<name>.<帳號>.workers.dev
 ```
 
-再把 worker 網址填進 `app.js` 最上面的 `SYNC_URL`,push。fork 自架的人把 `wrangler.toml` 裡的 `[[kv_namespaces]]` 區塊整個刪掉（那是本站從 KV 遷移到 D1 的過渡 fallback）。
+再把 worker 網址填進 `app.js` 最上面的 `SYNC_URL`,push。
 
 - 同步：背景自動（debounce 5 秒、切走 App、開設定頁時上傳）；換裝置在「設定」輸入同步碼一次即可。
 - 推播:Worker 用 `[triggers] crons = ["0 * * * *"]` 每小時檢查,到點且當天沒練就發。
-- 免費額度很夠；存放走 D1（免費層寫入 10 萬列/天）。早期用 KV 時 1,000 次寫入/天被真實流量吃滿過，2026-07 遷來 D1。
+- 免費額度很夠；存放走 D1（免費層寫入 10 萬列/天）。
 
 ## 擴充題庫 / 貢獻（給人 & AI 代理）
 
