@@ -164,7 +164,7 @@
   </footer>
   <script type="module" src="app.js"></script>
   <script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});</script>
-<!-- yz-promo-footer v8 | 三件套+BMC 注意力效果 | https://github.com/yazelin/promo-footer-skill -->
+<!-- yz-promo-footer v9 | 三件套+BMC 注意力效果 | https://github.com/yazelin/promo-footer-skill -->
 <script>
 (function(){"use strict";
 if(window.__yzPromoInit)return;window.__yzPromoInit=1;
@@ -202,9 +202,9 @@ n.innerHTML='<a href="'+GH+'" target="_blank" rel="noopener" aria-label="GitHub 
 document.body.appendChild(n)}
 function blogLinked(){var as=document.querySelectorAll('a[href^="https://yazelin.github.io"]');for(var i=0;i<as.length;i++){try{if(new URL(as[i].href).pathname==="/")return true}catch(e){}}return false}
 function addBlog(){if(!ADDBLOG||document.querySelector(".yz-blog")||blogLinked()||!inFooter(anchor))return;
-var c=anchor.cloneNode(true);c.classList.remove("yz-hop");c.classList.add("yz-blog");
+var c=anchor.cloneNode(true);c.classList.remove("yz-hop","yz-idle");c.classList.add("yz-blog");
 c.href="https://yazelin.github.io/";c.setAttribute("aria-label","亞澤的部落格");c.setAttribute("title","亞澤的部落格");
-if(c.querySelector("svg")){var sv=c.querySelector("svg");sv.outerHTML=ICONS.blog;var extra=c.querySelectorAll("svg");if(extra.length>1)for(var j=1;j<extra.length;j++)extra[j].remove()}else{c.textContent="部落格"}
+if(c.querySelector("svg")){var hasText=!!c.textContent.trim();c.innerHTML=ICONS.blog+(hasText?"部落格":"")}else{c.textContent="部落格"}
 anchor.parentNode.insertBefore(c,anchor.nextSibling)}
 function hop(){anchor.classList.remove("yz-hop");void anchor.offsetWidth;anchor.classList.add("yz-hop")}
 var shown=0,MAX_SHOWS=3;
@@ -235,6 +235,7 @@ function boot(){var tries=0;(function t(){if(start())return;if(++tries<20)setTim
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot);else boot();
 })();
 </script>
+
 
 
 
