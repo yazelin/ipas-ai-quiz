@@ -18,7 +18,9 @@ self.addEventListener('install', (e) => {
   })());
 });
 self.addEventListener('activate', (e) => {
-  e.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => k !== CACHE).map((k) => caches.delete(k)))).then(() => self.clients.claim()));
+  // 只清自己的 ipas-*:CacheStorage 是 per-origin,yazelin.github.io 所有專案共用同一份,
+  // 無差別刪會把 gewu 的 33MB、neko 等別站的離線包整包清掉,而且毫無徵兆。
+  e.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => k.startsWith('ipas-') && k !== CACHE).map((k) => caches.delete(k)))).then(() => self.clients.claim()));
 });
 // 推播:顯示通知
 self.addEventListener('push', (e) => {
