@@ -102,7 +102,7 @@ CLI 會擋掉:選項不是 4 個、answer 超範圍、缺必填、題幹重複�
 - **改學習邏輯**:在 `core.js`——`MASTER_BOX`(連對幾次算掌握)、`nextBox`(Leitner)、`reviewPriority`(智慧複習出題優先序)。改完務必更新並跑 `core.test.mjs`。
 - **改練習範圍維度**:`app.js` 的 `rangeKey()`(目前 = `chapter || subject`)。
 - **自架同步/推播後端**(fork 自己用):需要自己的 Cloudflare Worker + D1 + VAPID 金鑰。
-  1. `cd worker && npm i`,`wrangler d1 create ipas-quiz-sync` 把 database_id 填進 `wrangler.toml`,`wrangler d1 execute ipas-quiz-sync --remote --file schema.sql` 建表;`wrangler.toml` 裡的 `[[kv_namespaces]]` 區塊整個刪掉(本站 KV→D1 遷移的過渡 fallback,自架用不到)。
+  1. `cd worker && npm i`,`wrangler d1 create ipas-quiz-sync` 把 database_id 填進 `wrangler.toml`,`wrangler d1 execute ipas-quiz-sync --remote --file schema.sql` 建表。
   2. `npx web-push generate-vapid-keys` → 公鑰填 `wrangler.toml [vars] VAPID_PUBLIC` 與 `app.js` 的 `VAPID_PUBLIC`;私鑰 `wrangler secret put VAPID_PRIVATE`。
   3. `wrangler deploy`,把 worker 網址填進 `app.js` 的 `SYNC_URL`。
   - `SYNC_URL` 留空 = 純本機(同步/推播自動停用,站仍可用)。
