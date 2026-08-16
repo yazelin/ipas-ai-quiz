@@ -89,3 +89,34 @@ export function toMarkdown(questions, progress, title = 'iPAS 筆記') {
   if (n === 0) lines.push('_(還沒有星標或筆記的題目)_');
   return lines.join('\n');
 }
+
+// 從練習紀錄推「這個人在準備哪一級」。題目 id 內含級別:`-b-`=初級、`-m-`=中級
+// (114-4-b-s1-q1 / lg-m-s2-q7)。790 題零例外,所以不必查題庫,看 id 就夠。
+// 回傳 null = 資料不足以判斷(沒練過,或兩級練得差不多)。
+// 門檻 0.6:實測 400 個活躍使用者有 92% 落在單邊 60% 以上,中間那 5% 混著練的本來就不該猜。
+export function guessLevel(progress, minAnswered = 5) {
+  let b = 0, m = 0;
+  for (const id of Object.keys(progress || {})) {
+    if (id.includes('-b-')) b++;
+    else if (id.includes('-m-')) m++;
+  }
+  const n = b + m;
+  if (n < minAnswered) return null;
+  if (b / n >= 0.6) return '初級';
+  if (m / n >= 0.6) return '中級';
+  return null;
+}
+
+// 從官方日期表挑「還沒到的最近一場」。level 給了就只看那一級,沒給就看全部。
+// exams = { '初級': ['2026-11-07', ...], '中級': [...] };todayStr = 'YYYY-MM-DD'
+export function nextExam(exams, todayStr, level = null) {
+  let best = null;
+  for (const [lv, dates] of Object.entries(exams || {})) {
+    if (level && lv !== level) continue;
+    for (const d of dates || []) {
+      if (d < todayStr) continue;
+      if (!best || d < best.date) best = { level: lv, date: d };
+    }
+  }
+  return best;
+}

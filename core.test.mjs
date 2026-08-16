@@ -55,3 +55,28 @@ assert.ok(md2.includes('只有筆記沒星標'), '有筆記就該收');
 assert.ok(md2.includes('qa'));
 
 console.log('PASS');
+
+// ---- guessLevel / nextExam ----
+import { guessLevel, nextExam } from './core.js';
+const bId = (n) => `114-4-b-s1-q${n}`, mId = (n) => `114-2-m-s1-q${n}`;
+const mk = (ids) => Object.fromEntries(ids.map((i) => [i, { box: 1 }]));
+
+assert.equal(guessLevel(mk([1,2,3,4,5,6].map(bId))), '初級');
+assert.equal(guessLevel(mk([1,2,3,4,5,6].map(mId))), '中級');
+assert.equal(guessLevel(mk([...[1,2,3].map(bId), ...[1,2,3].map(mId)])), null, '五五波不猜');
+assert.equal(guessLevel(mk([bId(1), bId(2)])), null, '題數太少不猜');
+assert.equal(guessLevel({}), null);
+assert.equal(guessLevel(null), null, '沒有 progress 不能爆');
+// 學習指引題的 id 沒有梯次前綴,一樣要算進去
+assert.equal(guessLevel(mk(['lg-b-s1-q1','lg-b-s1-q2','lg-b-s2-q3','lg-b-s2-q4','lg-b-s2-q5'])), '初級');
+// 8:2 偏一邊 → 判得出來
+assert.equal(guessLevel(mk([...[1,2,3,4,5,6,7,8].map(bId), ...[1,2].map(mId)])), '初級');
+
+const EX = { 初級: ['2026-08-15', '2026-11-07'], 中級: ['2026-05-23', '2026-11-14'] };
+assert.deepEqual(nextExam(EX, '2026-08-17'), { level: '初級', date: '2026-11-07' }, '跨級取最近的一場');
+assert.deepEqual(nextExam(EX, '2026-08-17', '中級'), { level: '中級', date: '2026-11-14' });
+assert.deepEqual(nextExam(EX, '2026-08-15', '初級'), { level: '初級', date: '2026-08-15' }, '考試當天還算數');
+assert.equal(nextExam(EX, '2027-01-01'), null, '全部過期回 null');
+assert.equal(nextExam({}, '2026-08-17'), null);
+
+console.log('PASS (含 guessLevel / nextExam)');

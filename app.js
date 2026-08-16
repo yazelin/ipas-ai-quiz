@@ -1,4 +1,4 @@
-import { nextBox, isMastered, scoreExam, progressStats, wrongQuestionIds, toMarkdown, reviewPriority, MASTER_BOX } from './core.js';
+import { nextBox, isMastered, scoreExam, progressStats, wrongQuestionIds, toMarkdown, reviewPriority, guessLevel, nextExam, MASTER_BOX } from './core.js';
 
 const STORE_KEY = 'ipas_quiz_progress';
 // 部署 Cloudflare Worker 後填入，例如 'https://ipas-quiz-sync.你的帳號.workers.dev'。留空=只用本機。
@@ -90,10 +90,19 @@ function liveStreak() {
   const s = store.streak; if (!s || !s.lastDate) return 0;
   return (s.lastDate === today() || s.lastDate === yesterday()) ? s.count : 0;
 }
+// 倒數要對準哪一場。自己在設定裡填過的一律優先;沒填就自動判:
+// 看他練過的題是初級還是中級(id 裡的 -b-/-m-),挑那一級還沒到的最近一場。
+// 為什麼要自動:實測 2,137 個使用者只有 131 個(6%)走進設定頁設過日期,
+// 而考前那兩天湧進 267 個人,設日期的只多了 5 個。功能一直都在,只是沒人找得到。
+function examTarget() {
+  const set = store.settings && store.settings.examDate;
+  if (set) return { date: set, level: null };
+  if (!EXAMINFO) return null;
+  return nextExam(EXAMINFO.exams, today(), guessLevel(store.q || {}));
+}
 function daysUntilExam() {
-  const e = store.settings && store.settings.examDate; if (!e) return null;
-  const diff = Math.ceil((new Date(e + 'T00:00:00') - new Date(today() + 'T00:00:00')) / 86400000);
-  return diff;
+  const t = examTarget(); if (!t) return null;
+  return Math.ceil((new Date(t.date + 'T00:00:00') - new Date(today() + 'T00:00:00')) / 86400000);
 }
 // 每答一題呼叫：累加今日題數、記每日歷史、達標當下更新打卡
 function bumpDaily(correct) {
@@ -290,14 +299,23 @@ function home() {
     `<div class="range-group"><div class="range-lv">${esc(lv)}</div>${gs.map((g) =>
       `<label class="range-item"><input type="checkbox" class="rng" value="${esc(g.key)}" checked><span>${esc(g.key)}</span><b>${g.count}</b></label>`).join('')}</div>`).join('');
   const g = dailyGoal(), dc = todayCount(), strk = liveStreak(), du = daysUntilExam();
+  const et = examTarget();
   const goalHit = dc >= g;
+  // 開啟提醒的入口本來只在設定頁最底下,2,137 個人裡只有 17 個找到它。
+  // 放在倒數旁邊:看到「還有幾天」的那一刻,才是他真的想要被提醒的時候。
+  // 預設隱藏,渲染完非同步查到「還沒訂閱」才顯示,免得已訂閱的人看到重複的邀請。
+  const remindCta = du != null && du >= 0 && et && pushSupported() && SYNC_URL
+    ? `<div id="remind-cta" hidden><button id="remind-on">考前提醒我</button>
+         <span class="muted" id="remind-msg">${et.date}${et.level ? `・${esc(et.level)}` : ''}，每天提醒你刷幾題</span></div>`
+    : '';
   const dailyStrip = `
     <section class="card daily-card">
       <div class="daily">
         <div><b class="${goalHit ? 'hit' : ''}">${dc}/${g}</b><span>今日題數${goalHit ? ' ✓' : ''}</span></div>
         <div><b>${strk}</b><span>連續天數</span></div>
-        ${du != null ? `<div><b>${du < 0 ? '—' : du}</b><span>${du < 0 ? '考試已過' : '距考試（天）'}</span></div>` : ''}
+        ${du != null ? `<div><b>${du < 0 ? '—' : du}</b><span>${du < 0 ? '考試已過' : `距${et && et.level ? esc(et.level) : ''}考試（天）`}</span></div>` : ''}
       </div>
+      ${remindCta}
       <button id="share">分享進度</button>
     </section>`;
   const chDone = store.challengeDone === today();
@@ -379,6 +397,20 @@ function home() {
   };
   $('#pr-images').onclick = () => runPractice(shuffle(DATA.questions.filter((q) => q.image)));
   $('#challenge').onclick = () => { store.challengeDone = today(); save(); runPractice(dailyChallenge()); };
+  if ($('#remind-cta')) {
+    pushIsOn().then((on) => { if (!on) $('#remind-cta').hidden = false; }).catch(() => {});
+    $('#remind-on').onclick = async () => {
+      const btn = $('#remind-on'); btn.disabled = true; btn.textContent = '設定中…';
+      const r = await enablePush((store.settings && store.settings.reminderHour) || 20).catch(() => ({ ok: false }));
+      btn.textContent = r.ok ? '已開啟提醒' : '開啟失敗';
+      // 失敗多半是使用者按了「封鎖通知」,或 iPhone 沒把本站加到主畫面。指路到設定頁,那裡有完整說明。
+      $('#remind-msg').textContent = r.ok
+        ? '每天 20:00 提醒，時間可到設定頁改'
+        : (r.reason || '這台裝置開不起來，設定頁有說明');
+      btn.disabled = !r.ok;
+      if (r.ok) btn.disabled = true;
+    };
+  }
   $('#share').onclick = async () => {
     const cd = (du != null && du >= 0) ? `、距考試 ${du} 天` : '';
     const txt = `我在 iPAS AI 應用規劃師模擬考刷題：連續打卡 ${strk} 天、今日 ${dc}/${g} 題${cd}。一起來練官方試題！`;
