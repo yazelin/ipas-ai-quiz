@@ -168,6 +168,10 @@
 <script>
 (function(){"use strict";
 if(window.__yzPromoInit)return;window.__yzPromoInit=1;
+/* 開啟計數。只送站名,後端只記「哪天、哪站、幾次」,不存 IP、不設 cookie、不給識別碼。
+   有一半的作品是純靜態沒後端,以前根本不知道有沒有人在用。這行要放在下面那個
+   prefers-reduced-motion 的 return 之前,不然關動畫的人就不會被算到。 */
+try{if(location.hostname==="yazelin.github.io"&&navigator.sendBeacon)navigator.sendBeacon("https://k-rider-api.yazelinj303.workers.dev/hit?s=ipas-ai-quiz")}catch(e){}
 try{if(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches)return}catch(e){}
 var REPO="ipas-ai-quiz",INJECT=false,ADDBLOG=true;
 var GH=REPO?"https://github.com/yazelin/"+REPO:"https://github.com/yazelin";
