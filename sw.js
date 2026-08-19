@@ -1,7 +1,7 @@
 // 離線快取:app shell + 題庫。stale-while-revalidate(先給快取、背景更新)。
 // 改版要更新快取時,把 CACHE 版號 +1。
 
-const CACHE = "ipas-v57";
+const CACHE = "ipas-v58";
 const SHELL = ['./', 'index.html', 'build.html', 'app.js', 'core.js', 'manifest.json', 'favicon.svg', 'questions.json', 'concepts.json', 'exam-dates.json', 'icon-192.png', 'icon-512.png'];
 
 self.addEventListener('install', (e) => {
@@ -45,7 +45,7 @@ self.addEventListener('fetch', (e) => {
   // 只接管同源 GET;跨網域(同步 worker)不攔
   if (r.method !== 'GET' || new URL(r.url).origin !== location.origin) return;
   e.respondWith(caches.open(CACHE).then(async (c) => {
-    const cached = await c.match(r);
+    const cached = await c.match(r, { ignoreSearch: true });
     const net = fetch(r).then((res) => { if (res && res.ok) c.put(r, res.clone()).catch(() => {}); return res; }).catch(() => cached);
     return cached || net;
   }));

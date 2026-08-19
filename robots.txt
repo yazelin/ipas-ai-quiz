@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://yazelin.github.io/ipas-ai-quiz/sitemap.xml

@@ -3,6 +3,7 @@
   "short_name": "iPAS 模考",
   "description": "iPAS AI 應用規劃師 790 題官方試題與範例線上模擬考",
   "lang": "zh-Hant",
+  "id": "./",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
@@ -13,5 +14,9 @@
     { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
     { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" },
     { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "screenshots": [
+    { "src": "images/screenshot-narrow.webp", "sizes": "540x1170", "type": "image/webp", "form_factor": "narrow", "label": "練習首頁、每日挑戰與弱點統計" },
+    { "src": "images/screenshot-wide.webp", "sizes": "1280x800", "type": "image/webp", "form_factor": "wide", "label": "練習首頁、每日挑戰與弱點統計" }
   ]
 }
