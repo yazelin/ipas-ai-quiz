@@ -12,8 +12,11 @@ const TITLE = 'resource-change-title.txt';
 const write = process.argv.includes('--write');
 const nameOf = (u) => decodeURIComponent(u.split('/').pop());
 
-const res = await fetch(PAGE, { headers: { 'User-Agent': 'Mozilla/5.0 (ipas-ai-quiz resource watcher)' } });
-if (!res.ok) { console.error(`fetch failed: HTTP ${res.status}`); process.exit(0); } // 別因暫時抓不到就誤判
+let res;
+try {
+  res = await fetch(PAGE, { headers: { 'User-Agent': 'Mozilla/5.0 (ipas-ai-quiz resource watcher)' } });
+} catch (err) { console.error(`fetch failed: ${err.message}`); process.exit(0); } // 別因暫時抓不到就誤判(含網路層失敗,如 DNS/連線逾時)
+if (!res.ok) { console.error(`fetch failed: HTTP ${res.status}`); process.exit(0); }
 const raw = await res.text();
 const t = raw.replace(/\\u002[fF]/g, '/').replace(/\\\//g, '/');
 const urls = [...new Set(t.match(/https:\/\/[^"\\]*certification_resource[^"\\]*\.pdf/g) || [])].sort();
