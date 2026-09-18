@@ -85,7 +85,25 @@ CLI 會擋掉:選項不是 4 個、answer 超範圍、缺必填、題幹重複�
 
 ## 常見修改
 
-- **加一個新梯次的真題**:照 `.claude/skills/add-exam`(Claude Code 可用 `/add-exam`)的流程——PDF 網址進 `tools/sources.json` → `tools/extract.sh` 抽文字(`pdftotext`,**答案在最左欄**)→ AI 結構化成 `new.json` → `node tools/add-questions.mjs new.json`。帶圖題用 `pdfimages -png` 取乾淨內嵌圖。
+- **加一個新梯次的真題**:照 `.claude/skills/add-exam`(Claude Code 可用 `/add-exam`)的流程。**抽題請用 `tools/extract-exam.mjs`,不要自己拿 `pdftotext` 硬幹**:
+
+  ```bash
+  node tools/extract-exam.mjs '<PDF網址或檔案>' --level 初級 --round 115年第三次 \
+    --subject "科目1：人工智慧基礎概論" -o new.json
+  ```
+
+  它會把三件事做完:答案取自 PDF 最左欄並用**兩支互相獨立的解析器**對過(欄位式與座標式)、題幹用原始閱讀順序重建、頁首頁尾濾乾淨。輸出的 `chapter` / `topic` / `explanation` 是空的,由你填。**對不上就直接中止,不會給你半成品。**
+
+  **這支工具存在的理由是兩個會「靜默毀題」的坑**——都不會讓程式出錯,只會讓題目變成不能作答的樣子:
+
+  | 坑 | 長相 | 對策 |
+  |---|---|---|
+  | `-layout` 行序會亂 | 題幹段落被丟到深縮排、順序跑掉,重建出來的句子似通非通 | 題幹改用**不加 `-layout`** 的原始閱讀順序;`-layout` 那份只拿最左欄答案 |
+  | 頁尾插進句子中間 | 「判斷零件表面是否存**第 2 頁,共 15 頁**在細微刮痕」 | 解析階段濾掉;`check-questions.mjs` 有一條硬檢查會擋 |
+
+  答案本身用三重驗證:欄位式(`-layout` 最左欄)、座標式(`-bbox-layout` 的 x 最左帶)、以及「段內孤立字母不是本題答案就必是下一題答案」。**`-bbox-layout` 的 y 是每頁重新算的,跨頁比 y 會假報大量不一致**(2026-09-18 為此追過一次,19 題不符全是檢查器自己的 bug)。
+
+  帶圖題用 `pdfimages -png` 取乾淨內嵌圖;**先看尺寸分佈**,每頁尺寸都一樣的是頁首裝飾不是題目用圖(115-3 那兩份 30 張全是 1084x454 的裝飾,實際零張帶圖題)。
 - **加每日觀念卡**:整理成陣列檔後 `node tools/add-concepts.mjs new.json`(自動驗證+去重);或直接 append 進 `concepts.json` 的 `cards`,每張 `{level, subject, chapter, title, body}`。
 
 ### 內建工具一覽
@@ -96,7 +114,8 @@ CLI 會擋掉:選項不是 4 個、answer 超範圍、缺必填、題幹重複�
 | `node tools/add-concepts.mjs <f.json> [--dry-run]` | 批次加觀念卡(驗證+去重) |
 | `tools/extract.sh '<pdf>' out.txt` | 官方試題 PDF 抽文字 |
 | `node tools/check-resources.mjs [--write]` | 比對官方資源頁 PDF 快照,有新試題/指引就產 issue 內容(GitHub Actions 每日跑) |
-| `node tools/check-questions.mjs` | 題庫健康檢查(圖/檔名慣例/附圖漏掛/結構/標點),加題後跑 |
+| `node tools/extract-exam.mjs <pdf> --level --round --subject -o new.json` | 官方試題 PDF 抽成題目骨架(答案雙解析器交叉驗證 + 濾頁首頁尾) |
+| `node tools/check-questions.mjs` | 題庫健康檢查(圖/檔名慣例/附圖漏掛/結構/標點/**PDF 頁首頁尾殘留**),加題後跑 |
 | `/add-questions`(skill) | 引導加題流程 |
 | `/add-exam`(skill) | 引導加新梯次流程 |
 - **改學習邏輯**:在 `core.js`——`MASTER_BOX`(連對幾次算掌握)、`nextBox`(Leitner)、`reviewPriority`(智慧複習出題優先序)。改完務必更新並跑 `core.test.mjs`。
@@ -120,6 +139,7 @@ python3 -m http.server 8000        # 本機開站(fetch 需要 http,不能 file:
 
 ### 慣例(加題/加梯次務必遵守,`check-questions.mjs` 會擋)
 
+- **不要讓 PDF 的頁首頁尾混進題目文字**:`check-questions.mjs` 會把它當**錯誤**擋下來(不是提醒),因為那種題目顯示得出來卻不能作答。
 - **中文標點全形**:`,;:?` 在中文語境用全形 `,;:?`,中文外層括號用全形 `（ ）`;**夾純英文的括號維持半形**(如 `(LSTM)`、`(B)`、`P(y|x)`)。
 - **圖檔名 = 題目 id**:`assets/<id>.webp`(WebP lossless,SW 會自動預載供離線),不沿用原始 PDF 圖號。
 - **題幹提到圖就要有 `image`**。
