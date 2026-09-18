@@ -44,6 +44,24 @@ let fullEngCount = 0;
 for (const x of q) for (const t of [x.question, x.explanation, ...(x.options || [])]) if (t && fullEng.test(t)) { fullEngCount++; break; }
 if (fullEngCount) warns.push(`${fullEngCount} 題有「全形（）夾純英數」,house style 應半形()(如 （Model）→ (Model))`);
 
+// 5) 錯誤:PDF 頁首/頁尾文字被抽進題幹或選項。
+//    pdftotext 會把頁尾當成同一段,於是「第 2 頁,共 15 頁」被插進句子中間,長成
+//    「判斷零件表面是否存第 2 頁,共 15 頁在細微刮痕」。題目照樣顯示得出來、人不逐字讀
+//    不會發現,但那題已經不能作答,所以列為錯誤而非提醒。2026-09-18 加 115-3 時踩到。
+const pdfJunk = [
+  [/第\s*\d+\s*頁[，,]\s*共\s*\d+\s*頁/, '頁碼頁尾'],
+  [/能力鑑定【?公告試題/, '卷面頁首'],
+  [/考試日期[：:]\s*\d/, '卷面頁首的考試日期'],
+];
+for (const x of q) {
+  for (const t of [x.question, x.explanation, ...(x.options || [])]) {
+    if (!t) continue;
+    for (const [re, name] of pdfJunk) {
+      if (re.test(t)) { errors.push(`${x.id}:題目文字裡混進 PDF ${name}(${t.match(re)[0]}) — 抽文字時沒濾乾淨`); break; }
+    }
+  }
+}
+
 console.log(`題數 ${q.length}|帶圖題 ${withImg.length}|assets 圖 ${assets.length}`);
 if (warns.length) { console.log('\n提醒:'); warns.forEach((w) => console.log('  - ' + w)); }
 if (errors.length) { console.log('\n錯誤:'); errors.forEach((e) => console.log('  ✗ ' + e)); console.log(`\n共 ${errors.length} 個錯誤`); process.exit(1); }
