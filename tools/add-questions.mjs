@@ -36,10 +36,14 @@ for (const [i, raw] of incoming.entries()) {
   const q = { ...raw };
   // 必填
   for (const f of ['level', 'round', 'subject', 'question', 'options']) if (!q[f]) { errors.push(`${where}: 缺 ${f}`); }
-  if (!Array.isArray(q.options) || q.options.length !== 4) errors.push(`${where}: options 必須剛好 4 個`);
+  // 選項 3 或 4 個都收:台灣駕照筆試是三選一,真實題庫不見得遷就 4 選項。
+  if (!Array.isArray(q.options) || q.options.length < 3 || q.options.length > 4)
+    errors.push(`${where}: options 要 3 或 4 個(現為 ${Array.isArray(q.options) ? q.options.length : '非陣列'})`);
   // answer 正規化(letter -> index)
   if (typeof q.answer === 'string') { const idx = 'ABCD'.indexOf(q.answer.trim().toUpperCase()); if (idx >= 0) q.answer = idx; }
-  if (!Number.isInteger(q.answer) || q.answer < 0 || q.answer > 3) errors.push(`${where}: answer 要是 0-3 或 A-D`);
+  const nOpt = Array.isArray(q.options) ? q.options.length : 0;
+  if (!Number.isInteger(q.answer) || q.answer < 0 || q.answer >= nOpt)
+    errors.push(`${where}: answer 要落在 0 到 ${Math.max(nOpt - 1, 0)}(或 A-${'ABCD'[Math.max(nOpt - 1, 0)] || 'D'})`);
   if (errors.some((e) => e.startsWith(where))) continue;
   // 去重
   if (seenQ.has(norm(q.question))) { skipped.push(`${where}: 題幹重複,略過`); continue; }

@@ -7,11 +7,13 @@ const assets = fs.readdirSync('assets').filter((f) => /\.(webp|png|jpg|jpeg)$/i.
 const errors = [];
 const warns = [];
 
-// 1) 結構:選項剛好 4 個、answer 0–3、id 不重複
+// 1) 結構:選項 3 或 4 個、answer 落在選項範圍內、id 不重複
+//    (台灣駕照筆試是三選一,真實題庫不見得遷就 4 選項;既有 890 題全是 4 選,不受影響)
 const ids = new Set();
 for (const x of q) {
-  if (!Array.isArray(x.options) || x.options.length !== 4) errors.push(`${x.id}:options 不是 4 個(${x.options?.length})`);
-  if (!(Number.isInteger(x.answer) && x.answer >= 0 && x.answer <= 3)) errors.push(`${x.id}:answer 不在 0–3(${x.answer})`);
+  const nOpt = Array.isArray(x.options) ? x.options.length : 0;
+  if (nOpt < 3 || nOpt > 4) errors.push(`${x.id}:options 要 3 或 4 個(現為 ${nOpt || '非陣列'})`);
+  if (!(Number.isInteger(x.answer) && x.answer >= 0 && x.answer < nOpt)) errors.push(`${x.id}:answer 不在 0–${Math.max(nOpt - 1, 0)}(${x.answer})`);
   if (ids.has(x.id)) errors.push(`${x.id}:id 重複`);
   ids.add(x.id);
 }

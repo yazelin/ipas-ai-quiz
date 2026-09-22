@@ -38,8 +38,8 @@
       "chapter": "機器學習",         // 練習「範圍」依此分組;沒填會退回用 subject
       "topic": "監督式學習",         // 細標籤(自由),關鍵字搜尋會吃到
       "question": "題幹…",
-      "options": ["A選項", "B選項", "C選項", "D選項"],  // 必須剛好 4 個
-      "answer": 2,                  // 正解的 0-based 索引:A=0 B=1 C=2 D=3
+      "options": ["A選項", "B選項", "C選項", "D選項"],  // 3 或 4 個(台灣駕照筆試那類三選一也收)
+      "answer": 2,                  // 正解的 0-based 索引,要落在選項範圍內:A=0 B=1 C=2 D=3
       "explanation": "詳解…",        // 為何對 + 為何其他錯 + 概念
       "image": "assets/<id>.webp",  // 選填:帶圖題才有,檔名一律 = 題目 id(WebP lossless)
       "source": "學習指引"           // 選填:來源。缺省=歷屆考古題;"學習指引"=官方學習指引範例題(id 以 lg- 開頭、答案與解析皆官方)
@@ -48,7 +48,7 @@
 }
 ```
 
-**加題目最小步驟**:把新物件 append 進 `questions.questions`,確認 `options` 4 個、`answer` 是 0-3、`id` 不重複,然後:
+**加題目最小步驟**:把新物件 append 進 `questions.questions`,確認 `options` 有 3 或 4 個、`answer` 落在選項範圍內、`id` 不重複,然後:
 ```bash
 node -e "JSON.parse(require('fs').readFileSync('questions.json'))"   # 驗 JSON 合法
 node core.test.mjs                                                   # 驗邏輯沒壞
@@ -80,7 +80,7 @@ node tools/add-questions.mjs new.json             # 確認沒錯再真的加
   }
 ]
 ```
-CLI 會擋掉:選項不是 4 個、answer 超範圍、缺必填、題幹重複、id 撞號。全部 OK 才寫入。
+CLI 會擋掉:選項不是 3 或 4 個、answer 超出選項範圍、缺必填、題幹重複、id 撞號。全部 OK 才寫入。
 **給 AI 的提示**:產 `new.json` 時,字串內不要用半形雙引號 `"`(用「」),且 `answer` 要對應官方正解。
 
 ## 常見修改
@@ -140,6 +140,7 @@ python3 -m http.server 8000        # 本機開站(fetch 需要 http,不能 file:
 ### 慣例(加題/加梯次務必遵守,`check-questions.mjs` 會擋)
 
 - **不要讓 PDF 的頁首頁尾混進題目文字**:`check-questions.mjs` 會把它當**錯誤**擋下來(不是提醒),因為那種題目顯示得出來卻不能作答。
+- **選項數 3 或 4 個都可以**,同一份題庫可以混。既有 890 題全是 4 選;**台灣駕照筆試那類是三選一**,真實題庫不見得遷就你的 schema。`answer` 一律以選項數為準,不是寫死 0-3。
 - **中文標點全形**:`,;:?` 在中文語境用全形 `,;:?`,中文外層括號用全形 `（ ）`;**夾純英文的括號維持半形**(如 `(LSTM)`、`(B)`、`P(y|x)`)。
 - **圖檔名 = 題目 id**:`assets/<id>.webp`(WebP lossless,SW 會自動預載供離線),不沿用原始 PDF 圖號。
 - **題幹提到圖就要有 `image`**。
