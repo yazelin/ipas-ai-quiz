@@ -125,6 +125,29 @@ for (const f of ['robots.txt', 'sitemap.xml', 'build.html', 'README.md']) {
   }
 }
 
+// ---- 原站的「內容」檔:不清掉會在你的站上冒出跟你無關的東西 ----
+//   concepts.json  64 張 iPAS 的 AI 觀念卡。不清的話駕照站每天會跳一張「弱 AI 與強 AI」。
+//   exam-dates.json iPAS 的考試日期。不清的話首頁最上面會寫「距初級考試 46 天」,
+//                   看起來像真的,但跟你的考試毫無關係。這個比觀念卡更毒,因為它在首頁大字上。
+//   兩個清空之後前端都會自動不顯示那一塊(app.js 的 todayConcept 與 daysUntilExam 都有判空),
+//   站不會壞,只是少一個功能,等你填進自己的內容就回來。
+{
+  const f = 'concepts.json'; const s = readIf(f);
+  if (s) {
+    let n = 0; try { n = (JSON.parse(s).cards || []).length; } catch {}
+    write(f, s, JSON.stringify({ cards: [] }, null, 2) + '\n', `清掉 ${n} 張原站的每日觀念卡(換成你自己的就會回來)`);
+  }
+}
+{
+  const f = 'exam-dates.json'; const s = readIf(f);
+  if (s) {
+    write(f, s, JSON.stringify({
+      note: '你的考試日期。填進去首頁就會顯示倒數,留空則不顯示。',
+      pass: '', exams: {},
+    }, null, 2) + '\n', '清掉原站的考試日期(不清的話首頁會顯示跟你無關的倒數)');
+  }
+}
+
 // ---- 原站的帶圖題資產:換題庫後會變孤兒圖,check-questions 會擋 ----
 if (!flag('keep-images') && existsSync('assets')) {
   const imgs = readdirSync('assets').filter((x) => /\.(webp|png|jpg|jpeg)$/i.test(x));
@@ -164,6 +187,7 @@ if (!dry) {
   console.log(`
 接下來:
   1. 換掉 questions.json 成你的題庫(schema 見 AGENTS.md)
+     concepts.json 與 exam-dates.json 已經清空,要那兩個功能就填自己的內容
      ※ 換之前跑 check-questions 會報一堆「image 指到的檔不存在」,那是正常的:
        原站帶圖題的圖已經刪掉,但題庫還是原站的。題庫換成你的就沒了。
   2. node tools/check-questions.mjs && node core.test.mjs
