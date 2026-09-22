@@ -43,6 +43,15 @@
   nav { display:flex; gap:4px; justify-content:center; flex-wrap:wrap; padding:0 8px 8px; }
   nav button { border:0; background:none; padding:8px 12px; border-radius:8px; color:var(--c-muted); font-size:15px; cursor:pointer; }
   nav button.on { background:var(--c-card); color:var(--c-accent); font-weight:600; box-shadow:0 1px 2px rgba(0,0,0,.06); }
+  /* 六顆分頁在 430px 以下會擠到第二行(六顆總寬 374px,可用寬度只有視窗寬減 32)。
+     iPhone 14/15 的 390/393、Pixel 的 412、iPhone SE 2/3 的 375 全中,只有 430 放得下。
+     只收窄內距與間距,字級不動:最窄的「筆記」仍有 46px 寬,守住 44px 點擊區下限。
+     ponytail: 360px 起單行;320px(iPhone SE 一代那種)仍會換行,再擠下去就得把字級
+     或點擊區縮到標準以下,不值得為一支 2016 年的機器破無障礙底線,讓它照舊換行。 */
+  @media (max-width: 429px) {
+    nav { gap:2px; padding:0 2px 8px; }
+    nav button { padding:8px 8px; }
+  }
   main { max-width:720px; margin:0 auto; padding:8px 12px 48px; }
   .card { background:var(--c-card); border:1px solid var(--c-line); border-radius:14px; padding:20px; margin-bottom:16px; animation:card-in .18s ease both; }
   @keyframes card-in { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
