@@ -2,7 +2,7 @@
 
 export const MASTER_BOX = 3; // box 從 1 起,到 3 視為「已掌握」= 連續答對 2 次
 
-// Leitner 盒子：答對升一格(上限 MASTER_BOX)、答錯掉回 1。
+// 答對往前一格、答錯退回第一格,推到第三格就算掌握(紙卡背單字的老做法)。
 export function nextBox(box, correct) {
   const b = box || 1;
   return correct ? Math.min(b + 1, MASTER_BOX) : 1;
