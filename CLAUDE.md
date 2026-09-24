@@ -7,4 +7,5 @@
 快速提醒:
 - 加題目用 `node tools/add-questions.mjs <new.json>`(會驗證+配 id+去重),別手改大 JSON。
 - 改完跑 `node core.test.mjs`;改到被快取的檔就 bump `sw.js` 的 `CACHE` 版號。
+- 收工前把這次踩到、文件沒寫的坑寫回 AGENTS.md;會靜默出錯的加成 `check-questions.mjs` 硬檢查(見 AGENTS.md「收工前」)。
 - 別 commit `worker/node_modules`、`worker/.wrangler`、任何私鑰。
