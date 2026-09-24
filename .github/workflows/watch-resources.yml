@@ -2,7 +2,7 @@ name: 監看 IPAS 學習資源
 
 on:
   schedule:
-    - cron: '0 1 * * *'   # 每天 01:00 UTC = 09:00 台北(GitHub 排程可能延遲數十分鐘)
+    - cron: '17 1 * * *'  # 每天 01:17 UTC = 09:17 台北。避開整點:整點是 GitHub 排程最擠的時候,會延遲甚至被丟掉
   workflow_dispatch:        # 也可手動觸發
 
 permissions:
