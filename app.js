@@ -1,6 +1,6 @@
 import { nextBox, isMastered, scoreExam, progressStats, wrongQuestionIds, toMarkdown, reviewPriority, guessLevel, nextExam, latestExam, shouldShowPostExamThanks, MASTER_BOX } from './core.js';
 // 考後感謝卡的開關。預設關著;文案作者看過才打開。網址加 ?thanks=preview 可以強制預覽。
-const POST_EXAM_THANKS_ENABLED = false;
+const POST_EXAM_THANKS_ENABLED = true;
 
 const STORE_KEY = 'ipas_quiz_progress';
 // 部署 Cloudflare Worker 後填入，例如 'https://ipas-quiz-sync.你的帳號.workers.dev'。留空=只用本機。
