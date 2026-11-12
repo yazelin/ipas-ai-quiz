@@ -120,3 +120,36 @@ export function nextExam(exams, todayStr, level = null) {
   }
   return best;
 }
+
+// 挑最近已考完的一場，供考後期間沿用；未傳 level 時跨級挑最近日期。
+export function latestExam(exams, todayStr, level = null) {
+  let best = null;
+  for (const [lv, dates] of Object.entries(exams || {})) {
+    if (level && lv !== level) continue;
+    for (const date of dates || []) {
+      if (date > todayStr) continue;
+      if (!best || date > best.date) best = { level: lv, date };
+    }
+  }
+  return best;
+}
+
+// 考後感謝卡的純條件判斷。nowLocal 使用瀏覽器當地時間 YYYY-MM-DDTHH:mm。
+export function shouldShowPostExamThanks({ examDate, nowLocal, totalAttempts, dismissed, enabled, preview = false }) {
+  if (preview) return true;
+  if (!enabled || dismissed || !Number.isFinite(totalAttempts) || totalAttempts < 20) return false;
+  if (typeof examDate !== 'string' || typeof nowLocal !== 'string') return false;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(examDate)) return false;
+
+  const examDay = Date.parse(`${examDate}T00:00:00Z`);
+  const nowMatch = /^(\d{4}-\d{2}-\d{2})T(\d{2}):(\d{2})$/.exec(nowLocal);
+  if (!Number.isFinite(examDay) || !nowMatch) return false;
+  if (+nowMatch[2] > 23 || +nowMatch[3] > 59) return false;
+  const nowDay = Date.parse(`${nowMatch[1]}T00:00:00Z`);
+  if (!Number.isFinite(nowDay) || new Date(examDay).toISOString().slice(0, 10) !== examDate
+      || new Date(nowDay).toISOString().slice(0, 10) !== nowMatch[1]) return false;
+
+  const dayOffset = (nowDay - examDay) / 86400000;
+  if (dayOffset < 0 || dayOffset > 14) return false;
+  return dayOffset > 0 || `${nowMatch[2]}:${nowMatch[3]}` >= '17:00';
+}

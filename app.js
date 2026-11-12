@@ -1,5 +1,6 @@
-import { nextBox, isMastered, scoreExam, progressStats, wrongQuestionIds, toMarkdown, reviewPriority, guessLevel, nextExam, MASTER_BOX } from './core.js';
+import { nextBox, isMastered, scoreExam, progressStats, wrongQuestionIds, toMarkdown, reviewPriority, guessLevel, nextExam, latestExam, shouldShowPostExamThanks, MASTER_BOX } from './core.js';
 
+const POST_EXAM_THANKS_ENABLED = false;
 const STORE_KEY = 'ipas_quiz_progress';
 // 部署 Cloudflare Worker 後填入，例如 'https://ipas-quiz-sync.你的帳號.workers.dev'。留空=只用本機。
 const SYNC_URL = 'https://ipas-quiz-sync.yazelinj303.workers.dev';
@@ -82,6 +83,10 @@ async function disablePush() {
 // ---- 每日目標 / 連續打卡 / 考前倒數 ----
 const ymd = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 const today = () => ymd(new Date());
+const localDateTime = () => {
+  const d = new Date();
+  return `${ymd(d)}T${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+};
 const yesterday = () => { const d = new Date(); d.setDate(d.getDate() - 1); return ymd(d); };
 const dailyGoal = () => (store.settings && store.settings.dailyGoal) || 20;
 const todayCount = () => (store.daily && store.daily.date === today() ? store.daily.count : 0);
@@ -90,15 +95,50 @@ function liveStreak() {
   const s = store.streak; if (!s || !s.lastDate) return 0;
   return (s.lastDate === today() || s.lastDate === yesterday()) ? s.count : 0;
 }
-// 倒數要對準哪一場。自己在設定裡填過的一律優先;沒填就自動判:
-// 看他練過的題是初級還是中級(id 裡的 -b-/-m-),挑那一級還沒到的最近一場。
-// 為什麼要自動:實測 2,137 個使用者只有 131 個(6%)走進設定頁設過日期,
-// 而考前那兩天湧進 267 個人,設日期的只多了 5 個。功能一直都在,只是沒人找得到。
+// 倒數要對準哪一場。自己在設定裡填過的一律優先；沒填就自動判斷：
+// 看使用者練過的題是初級還是中級（id 裡的 -b-／-m-），挑該級還沒到的最近一場。
+// 為什麼要自動：實測 2,137 個使用者只有 131 個（6％）走進設定頁設過日期，
+// 而考前那兩天湧進 267 個人，設日期的只多了 5 個。功能一直都在，只是沒人找得到。
 function examTarget() {
   const set = store.settings && store.settings.examDate;
   if (set) return { date: set, level: null };
   if (!EXAMINFO) return null;
   return nextExam(EXAMINFO.exams, today(), guessLevel(store.q || {}));
+}
+function postExamThanksState() {
+  const preview = new URLSearchParams(location.search).get('thanks') === 'preview';
+  if (!preview && !POST_EXAM_THANKS_ENABLED) return null;
+
+  const nowLocal = localDateTime();
+  const todayStr = nowLocal.slice(0, 10);
+  const level = guessLevel(store.q || {});
+  const date = (store.settings && store.settings.examDate)
+    || latestExam(EXAMINFO && EXAMINFO.exams, todayStr, level)?.date
+    || (preview && (examTarget()?.date || todayStr));
+  if (!date) return null;
+
+  const dismissKey = `ipas_post_exam_thanks_${preview ? 'preview_' : ''}${date}`;
+  const dismissed = localStorage.getItem(dismissKey) === '1';
+  const visible = shouldShowPostExamThanks({
+    examDate: date,
+    nowLocal,
+    totalAttempts: Object.values(store.q || {}).reduce((sum, p) => sum + (Number.isFinite(p && p.attempts) ? Math.max(0, p.attempts) : 0), 0),
+    dismissed,
+    enabled: POST_EXAM_THANKS_ENABLED,
+    preview,
+  });
+  return visible ? { date, dismissKey } : null;
+}
+function postExamThanksCard() {
+  return `<section id="post-exam-thanks" class="card thanks-card" aria-labelledby="thanks-title">
+    <h2 id="thanks-title">考完了，辛苦了</h2>
+    <p>這個站是我一個人加 AI 做的，沒有廣告，也不收費。它有幫到你的話，可以請我喝杯咖啡。之後有新題或新的證照題庫，會先在 LINE 社群講。</p>
+    <div class="thanks-actions">
+      <a class="thanks-primary" data-thanks-dismiss href="https://buymeacoffee.com/yazelin" target="_blank" rel="noopener noreferrer">請喝咖啡</a>
+      <a class="thanks-secondary" data-thanks-dismiss href="https://line.me/ti/g2/xshYqZH3DLsqO8XNipmG3abL_KM6DORU7da5Lw?utm_source=invitation&amp;utm_medium=link_copy&amp;utm_campaign=ipas-post-exam" target="_blank" rel="noopener noreferrer">加入 LINE 社群</a>
+      <button class="thanks-secondary" data-thanks-dismiss type="button" aria-label="不用了，關閉考後感謝卡">不用了</button>
+    </div>
+  </section>`;
 }
 function daysUntilExam() {
   const t = examTarget(); if (!t) return null;
@@ -129,12 +169,12 @@ function save() {
 }
 
 // ---- 雲端同步（同步碼，免帳號） ----
-// 寫入策略:checkpoint(交卷/練習完成/切走關頁)立即 flush;持續作答只在停頓 30s 後補寫一次。
-// dirty gating = 沒變動就絕不寫,省 KV 寫入額度。
+// 寫入策略：checkpoint（交卷／練習完成／切走關頁）立即 flush；持續作答只在停頓 30s 後補寫一次。
+// dirty gating = 沒變動就絕不寫，省 KV 寫入額度。
 function schedulePush() {
   if (!SYNC_URL) return;
   clearTimeout(pushTimer);
-  pushTimer = setTimeout(pushSync, 30000); // ponytail: debounce 30s 只當長 session 的保底;真正的寫在 checkpoint
+  pushTimer = setTimeout(pushSync, 30000); // ponytail：debounce 30s 只當長 session 的保底；真正的寫在 checkpoint
 }
 async function pushSync(opts = {}) {
   clearTimeout(pushTimer); pushTimer = null;
@@ -179,28 +219,28 @@ function makeCode() {
   const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
   return `${pick(a)}-${pick(b)}-${Math.floor(1000 + Math.random() * 9000)}`;
 }
-// 自動產生的新碼先跟雲端查重再定案(雙保險):只碰 codeFresh 的全新 store,
-// 手動輸入的碼與既有使用者一律不動。離線或伺服器出錯就放行,不擋使用者。
+// 自動產生的新碼先跟雲端查重再定案（雙保險）：只碰 codeFresh 的全新 store，
+// 手動輸入的碼與既有使用者一律不動。離線或伺服器出錯就放行，不擋使用者。
 async function ensureFreshCode() {
   if (!store.codeFresh) return;
   if (SYNC_URL && !store.updatedAt && !Object.keys(store.q || {}).length) {
     for (let i = 0; i < 3; i++) {
       try {
         const r = await fetch(`${SYNC_URL}/sync/${encodeURIComponent(store.syncCode)}`);
-        if (!r.ok) break; // 404 = 沒人用,定案;5xx 也放行
+        if (!r.ok) break; // 404 = 沒人用，定案；5xx 也放行
         store.syncCode = makeCode(); // 被占用 → 重抽再查
       } catch { break; }
     }
   }
   delete store.codeFresh;
-  localStorage.setItem(STORE_KEY, JSON.stringify(store)); // 只落地碼,不動 updatedAt
+  localStorage.setItem(STORE_KEY, JSON.stringify(store)); // 只落地碼，不動 updatedAt
 }
 
 // ---- helpers ----
 const subjects = () => [...new Set(DATA.questions.map((q) => q.subject))];
 const papers = () => [...new Set(DATA.questions.map((q) => `${q.level}｜${q.round}｜${q.subject}`))];
 const esc = (s) => String(s).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
-// 解析顯示用:在「。/；後面的 (A)-(D) 選項分析」與「記憶點」前斷行並加粗,把長段落變條列(不動資料)
+// 解析顯示用：在「。／；後面的（A）至（D）選項分析」與「記憶點」前斷行並加粗，把長段落變條列（不動資料）。
 function formatExp(text) {
   return esc(text)
     .replace(/([。；])\s*([(（][A-DＡ-Ｄ][)）])/g, '$1<br>$2')
@@ -292,6 +332,8 @@ function rangeGroups() {
 
 function home() {
   setNav('home');
+  const thanksState = postExamThanksState();
+  const thanksCard = thanksState ? postExamThanksCard() : '';
   const groups = rangeGroups();
   const byLevel = {};
   groups.forEach((g) => (byLevel[g.level] ||= []).push(g));
@@ -301,9 +343,9 @@ function home() {
   const g = dailyGoal(), dc = todayCount(), strk = liveStreak(), du = daysUntilExam();
   const et = examTarget();
   const goalHit = dc >= g;
-  // 開啟提醒的入口本來只在設定頁最底下,2,137 個人裡只有 17 個找到它。
-  // 放在倒數旁邊:看到「還有幾天」的那一刻,才是他真的想要被提醒的時候。
-  // 預設隱藏,渲染完非同步查到「還沒訂閱」才顯示,免得已訂閱的人看到重複的邀請。
+  // 開啟提醒的入口本來只在設定頁最底下，2,137 個人裡只有 17 個找到它。
+  // 放在倒數旁邊：看到「還有幾天」的那一刻，才是使用者真的想要被提醒的時候。
+  // 預設隱藏，渲染完非同步查到「還沒訂閱」才顯示，免得已訂閱的人看到重複的邀請。
   const remindCta = du != null && du >= 0 && et && pushSupported() && SYNC_URL
     ? `<div id="remind-cta" hidden><button id="remind-on">考前提醒我</button>
          <span class="muted" id="remind-msg">${et.date}${et.level ? `・${esc(et.level)}` : ''}，每天提醒你刷幾題</span></div>`
@@ -311,7 +353,7 @@ function home() {
   const dailyStrip = `
     <section class="card daily-card">
       <div class="daily">
-        <div><b class="${goalHit ? 'hit' : ''}">${dc}/${g}</b><span>今日題數${goalHit ? ' ✓' : ''}</span></div>
+        <div><b class="${goalHit ? 'hit' : ''}">${dc}/${g}</b><span>今日題數${goalHit ? ' ✓' : ''}</span><!-- speak-tw-ok --></div>
         <div><b>${strk}</b><span>連續天數</span></div>
         ${du != null ? `<div><b>${du < 0 ? '—' : du}</b><span>${du < 0 ? '考試已過' : `距${et && et.level ? esc(et.level) : ''}考試（天）`}</span></div>` : ''}
       </div>
@@ -321,7 +363,7 @@ function home() {
   const chDone = store.challengeDone === today();
   const challengeCard = `
     <section class="card">
-      <div class="row"><h3 style="margin:0">今日挑戰 ${chDone ? '✓ 已完成' : '3 題'}</h3>
+      <div class="row"><h3 style="margin:0">今日挑戰 ${chDone ? '✓ 已完成' : '3 題'}</h3><!-- speak-tw-ok -->
         <button class="primary" id="challenge" style="margin:0;padding:8px 14px">${chDone ? '再做一次' : '開始'}</button></div>
       <p class="muted" style="margin:6px 0 0">每天 3 題，養成每日刷題的習慣。</p>
     </section>`;
@@ -332,7 +374,7 @@ function home() {
       <h3>${esc(cc.title)}</h3>
       <p>${esc(cc.body)}</p>
     </section>` : '';
-  view.innerHTML = `${dailyStrip}${challengeCard}${conceptCard}
+  view.innerHTML = `${thanksCard}${dailyStrip}${challengeCard}${conceptCard}
     <section class="card">
       <h2>練習模式</h2>
       <p class="muted">即時看答案與解析。勾選要練的範圍，預設全選。</p>
@@ -359,8 +401,17 @@ function home() {
         </select>
       </label>
       <button class="primary" id="pr-start">開始練習</button>
-      <button class="primary alt" id="pr-images">只練看圖題（${DATA.questions.filter((q) => q.image).length} 題,全中級）</button>
+      <button class="primary alt" id="pr-images">只練看圖題（${DATA.questions.filter((q) => q.image).length} 題,全中級）</button><!-- speak-tw-ok -->
     </section>`;
+  if (thanksState) {
+    const card = $('#post-exam-thanks');
+    card.querySelectorAll('[data-thanks-dismiss]').forEach((action) => {
+      action.addEventListener('click', () => {
+        localStorage.setItem(thanksState.dismissKey, '1');
+        card.remove();
+      });
+    });
+  }
   const selectedKeys = () => new Set([...view.querySelectorAll('.rng:checked')].map((c) => c.value));
   const kw = () => $('#pr-kw').value.trim().toLowerCase();
   const matchKw = (q) => {
@@ -403,7 +454,7 @@ function home() {
       const btn = $('#remind-on'); btn.disabled = true; btn.textContent = '設定中…';
       const r = await enablePush((store.settings && store.settings.reminderHour) || 20).catch(() => ({ ok: false }));
       btn.textContent = r.ok ? '已開啟提醒' : '開啟失敗';
-      // 失敗多半是使用者按了「封鎖通知」,或 iPhone 沒把本站加到主畫面。指路到設定頁,那裡有完整說明。
+      // 失敗多半是使用者按了「封鎖通知」，或 iPhone 沒把本站加到主畫面。指引到設定頁，那裡有完整說明。
       $('#remind-msg').textContent = r.ok
         ? '每天 20:00 提醒，時間可到設定頁改'
         : (r.reason || '這台裝置開不起來，設定頁有說明');
@@ -435,7 +486,7 @@ function runPractice(pool, opts = {}) {
     view.innerHTML = `
       <section class="card">
         <div class="row"><span class="muted">${i + 1} / ${pool.length}</span>
-          <button class="star ${p.starred ? 'on' : ''}" id="star">${p.starred ? '★ 已標' : '☆ 標記'}</button></div>
+          <button class="star ${p.starred ? 'on' : ''}" id="star">${p.starred ? '★ 已標' : '☆ 標記'}</button><!-- speak-tw-ok --></div>
         <p class="qmeta muted">${esc(q.subject)}${q.topic ? '・' + esc(q.topic) : ''}${q.source === '學習指引' ? ' <span class="src-tag">學習指引範例</span>' : ''}</p>
         <h3>${esc(q.question)}</h3>
         ${q.image ? `<img class="qfig" src="${esc(q.image)}" alt="題目附圖" loading="lazy">` : ''}
@@ -478,8 +529,8 @@ function runPractice(pool, opts = {}) {
       <section class="card">
         <h2>練習完成</h2>
         <p class="score">${pct}％</p>
-        <p>這組 ${total} 題,答對 ${right}、答錯 ${wrong}</p>
-        ${sessionWrong.length ? '<button class="primary" id="redo-wrong">只練這次錯的</button>' : '<p class="muted">這組全對,讚!</p>'}
+        <p>這組 ${total} 題,答對 ${right}、答錯 ${wrong}</p><!-- speak-tw-ok -->
+        ${sessionWrong.length ? '<button class="primary" id="redo-wrong">只練這次錯的</button>' : '<p class="muted">這組全對,讚!</p>'}<!-- speak-tw-ok -->
         <button id="again">再練一次</button>
         <button id="back">回首頁</button>
       </section>`;
@@ -595,10 +646,10 @@ function notes() {
   view.innerHTML = `
     <section class="card">
       <h2>我的筆記</h2>
-      <p class="muted">有寫筆記、或加星 ⭐ 的題目都在這。筆記可直接在下面改,會自動存。</p>
+      <p class="muted">有寫筆記、或加星 ⭐ 的題目都在這。筆記可直接在下面改,會自動存。</p><!-- speak-tw-ok -->
       ${items.length
         ? '<button id="exp-notes">匯出筆記（Markdown）</button>'
-        : '<p>還沒有筆記或星標題。練習時在題目下方寫筆記、或點 ☆ 加星,就會出現在這。</p>'}
+        : '<p>還沒有筆記或星標題。練習時在題目下方寫筆記、或點 ☆ 加星,就會出現在這。</p>' /* speak-tw-ok */}
       ${items.map((q) => {
         const p = qp(q.id);
         return `<div class="note-item">
@@ -644,7 +695,7 @@ function stats() {
     { on: recAcc != null && recAcc >= 80, t: '近期 80% 命中' },
     { on: [...byCh.values()].some((c) => c.total > 0 && c.mastered === c.total), t: '某範圍全掌握' },
   ];
-  const badgeHtml = badges.map((b) => `<span class="badge ${b.on ? '' : 'lock'}">${b.on ? '✓ ' : ''}${b.t}</span>`).join('');
+  const badgeHtml = badges.map((b) => `<span class="badge ${b.on ? '' : 'lock'}">${b.on ? '✓ ' : ''}${b.t}</span><!-- speak-tw-ok -->`).join('');
   // 最近 14 天題數趨勢
   const days14 = [];
   for (let i = 13; i >= 0; i--) { const d = new Date(today() + 'T00:00:00'); d.setDate(d.getDate() - i); days14.push(ymd(d)); }
@@ -678,7 +729,7 @@ function stats() {
     </section>`;
 }
 
-// 官方考試資訊小區塊:及格標準(穩定)+ 各級下次考試日期一鍵填入(非強制,初級中級日期不同)
+// 官方考試資訊小區塊：及格標準（穩定）＋各級下次考試日期按一下帶入（非強制，初級與中級日期不同）。
 function examInfoHtml() {
   if (!EXAMINFO) return '';
   const t = today();
@@ -688,7 +739,7 @@ function examInfoHtml() {
     .join('');
   return `<div class="guide" style="white-space:normal">
     ${EXAMINFO.pass ? `<p style="margin:0 0 6px">${esc(EXAMINFO.pass)}</p>` : ''}
-    ${picks ? `<div style="margin-bottom:6px">一鍵設為倒數日期(初級/中級日期不同,自己選):<br>${picks}</div>` : ''}
+    ${picks ? `<div style="margin-bottom:6px">一鍵設為倒數日期(初級/中級日期不同,自己選):<br>${picks}</div><!-- speak-tw-ok -->` : ''}
     <a href="https://ipd.nat.gov.tw/ipas/certification/AIAP/exam-info" target="_blank" rel="noopener">官方考試資訊 ↗</a>
   </div>`;
 }
@@ -750,12 +801,12 @@ function settings() {
     </section>`;
   const insBtn = $('#set-install'), insMsg = $('#set-install-msg');
   if (insBtn) {
-    if (isStandalone()) { insBtn.textContent = '已安裝 ✓'; insBtn.disabled = true; }
+    if (isStandalone()) { insBtn.textContent = '已安裝 ✓'; insBtn.disabled = true; } // speak-tw-ok
     else if (deferredInstall) {
       insBtn.onclick = async () => {
         deferredInstall.prompt();
         const c = await deferredInstall.userChoice.catch(() => ({}));
-        if (c && c.outcome === 'accepted') { insBtn.textContent = '已安裝 ✓'; insBtn.disabled = true; dismissInstallBar(); }
+        if (c && c.outcome === 'accepted') { insBtn.textContent = '已安裝 ✓'; insBtn.disabled = true; dismissInstallBar(); } // speak-tw-ok
         deferredInstall = null;
       };
     } else {
@@ -831,11 +882,11 @@ function settings() {
   $('#reset').onclick = async () => {
     if (!confirm('確定清除本機所有作答進度與筆記？')) return;
     store = { v: 1, syncCode: makeCode(), codeFresh: true, q: {} };
-    await ensureFreshCode(); // 新碼先查重,再 save(save 會標 dirty 上傳)
+    await ensureFreshCode(); // 新碼先查重，再 save（save 會標 dirty 上傳）
     save(); settings();
   };
   $('#reset-stats').onclick = () => {
-    if (!confirm('重設統計?掌握度、正確率、錯題本、打卡、趨勢都歸零;保留筆記、星標與設定。')) return;
+    if (!confirm('重設統計?掌握度、正確率、錯題本、打卡、趨勢都歸零;保留筆記、星標與設定。')) return; // speak-tw-ok
     for (const id in store.q) {
       const p = store.q[id];
       if (p.note || p.starred) store.q[id] = { box: 1, attempts: 0, correct: 0, wrong: 0, note: p.note || '', starred: !!p.starred };
@@ -846,7 +897,7 @@ function settings() {
   };
 }
 
-// 從 UA 粗略判斷裝置/瀏覽器,給「意見回饋」表單預填(僅 OS + 瀏覽器名,不含版本)
+// 從 UA 粗略判斷裝置／瀏覽器，給「意見回饋」表單預填（僅 OS＋瀏覽器名，不含版本）。
 function deviceLabel() {
   const ua = navigator.userAgent;
   const os = /iPhone/.test(ua) ? 'iPhone' : /iPad/.test(ua) ? 'iPad' : /Android/.test(ua) ? 'Android'
@@ -886,7 +937,7 @@ async function boot() {
   if (DATA.meta?.title) $('#title').textContent = DATA.meta.title;
   if (DATA.meta?.note) { const n = $('#banner'); n.textContent = DATA.meta.note; n.hidden = false; }
   localStorage.setItem(STORE_KEY, JSON.stringify(store)); // 落地可能新生成的 syncCode(不動 updatedAt)
-  await ensureFreshCode(); // 全新自動碼先查重(要在 pull 之前,否則撞碼會拉到陌生人的進度)
+  await ensureFreshCode(); // 全新自動碼先查重（要在 pull 之前，否則撞碼會拉到陌生人的進度）
   if (SYNC_URL) await pullSync(); // 開啟先拉雲端，單人多裝置就不會互蓋
   document.addEventListener('visibilitychange', () => { if (document.hidden) pushSync({ keepalive: true }); }); // checkpoint:切走/關頁前 flush
   home();

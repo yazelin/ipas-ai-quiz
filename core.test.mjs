@@ -1,6 +1,6 @@
 // node core.test.mjs  — 邏輯壞掉就會 throw。
 import assert from 'node:assert';
-import { nextBox, isMastered, scoreExam, progressStats, wrongQuestionIds, toMarkdown, reviewPriority } from './core.js';
+import { nextBox, isMastered, scoreExam, progressStats, wrongQuestionIds, toMarkdown, reviewPriority, guessLevel, nextExam, latestExam, shouldShowPostExamThanks } from './core.js';
 
 // 出題優先序:錯題(0) < 沒做過(1) < 做過未掌握(2) < 已掌握(3)
 assert.equal(reviewPriority({ box: 1, attempts: 2, wrong: 1 }), 0);
@@ -56,8 +56,7 @@ assert.ok(md2.includes('qa'));
 
 console.log('PASS');
 
-// ---- guessLevel / nextExam ----
-import { guessLevel, nextExam } from './core.js';
+// ---- guessLevel / 考試日期 / 考後感謝卡 ----
 const bId = (n) => `114-4-b-s1-q${n}`, mId = (n) => `114-2-m-s1-q${n}`;
 const mk = (ids) => Object.fromEntries(ids.map((i) => [i, { box: 1 }]));
 
@@ -79,4 +78,20 @@ assert.deepEqual(nextExam(EX, '2026-08-15', '初級'), { level: '初級', date: 
 assert.equal(nextExam(EX, '2027-01-01'), null, '全部過期回 null');
 assert.equal(nextExam({}, '2026-08-17'), null);
 
-console.log('PASS (含 guessLevel / nextExam)');
+const POST_EXAMS = { 初級: ['2026-08-15', '2026-11-07'], 中級: ['2026-08-22', '2026-11-14'] };
+assert.deepEqual(latestExam(POST_EXAMS, '2026-08-22', '初級'), { level: '初級', date: '2026-08-15' });
+assert.deepEqual(latestExam(POST_EXAMS, '2026-08-22'), { level: '中級', date: '2026-08-22' });
+assert.equal(latestExam(POST_EXAMS, '2026-08-14'), null);
+
+const thanksConditions = { examDate: '2026-08-15', totalAttempts: 20, dismissed: false, enabled: true };
+assert.equal(shouldShowPostExamThanks({ ...thanksConditions, nowLocal: '2026-08-14T18:00' }), false, '考前不顯示');
+assert.equal(shouldShowPostExamThanks({ ...thanksConditions, nowLocal: '2026-08-15T16:59' }), false, '考試當天 16:59 不顯示');
+assert.equal(shouldShowPostExamThanks({ ...thanksConditions, nowLocal: '2026-08-15T17:00' }), true, '考試當天 17:00 開始顯示');
+assert.equal(shouldShowPostExamThanks({ ...thanksConditions, nowLocal: '2026-08-29T23:59' }), true, '考後第 14 天仍顯示');
+assert.equal(shouldShowPostExamThanks({ ...thanksConditions, nowLocal: '2026-08-30T00:00' }), false, '考後第 15 天不顯示');
+assert.equal(shouldShowPostExamThanks({ ...thanksConditions, totalAttempts: 19, nowLocal: '2026-08-15T17:00' }), false, '作答 19 題不顯示');
+assert.equal(shouldShowPostExamThanks({ ...thanksConditions, dismissed: true, nowLocal: '2026-08-15T17:00' }), false, '已關閉不顯示');
+assert.equal(shouldShowPostExamThanks({ ...thanksConditions, enabled: false, nowLocal: '2026-08-15T17:00' }), false, '旗標關閉不顯示');
+assert.equal(shouldShowPostExamThanks({ totalAttempts: 0, dismissed: true, enabled: false, preview: true }), true, '預覽略過所有顯示條件');
+
+console.log('PASS（含猜級、考試日期與考後感謝卡）');

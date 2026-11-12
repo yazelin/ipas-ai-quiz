@@ -117,6 +117,12 @@
   .concept-card { background:linear-gradient(135deg,#eef4ff,#f8fafc); border:1px solid #dbe5f5; }
   .concept-card .ck { font-size:12px; color:var(--c-accent); font-weight:600; }
   .concept-card h3 { margin:4px 0 6px; }
+  .thanks-card > p { max-width:64ch; }
+  .thanks-actions { display:flex; flex-wrap:wrap; gap:8px; }
+  .thanks-actions a, .thanks-actions button { display:inline-flex; align-items:center; justify-content:center; max-width:100%; min-height:44px; margin:0; padding:10px 14px; border-radius:8px; font:inherit; font-size:14px; text-align:center; text-decoration:none; overflow-wrap:anywhere; cursor:pointer; }
+  .thanks-actions .thanks-primary { border:1px solid var(--c-accent); background:var(--c-accent); color:#fff; }
+  .thanks-actions .thanks-secondary { border:1px solid var(--c-line); background:var(--c-bg); color:var(--c-ink); }
+  .thanks-actions a:focus-visible, .thanks-actions button:focus-visible { outline:3px solid var(--c-accent); outline-offset:2px; }
   .report-line a { font-size:12px; color:var(--c-muted); }
   .note-item { border-top:1px solid var(--c-line); padding-top:12px; margin-top:12px; }
   .note-item .qn { font-size:14px; margin:6px 0; }
@@ -151,7 +157,7 @@
   </header>
   <div id="installbar" hidden>
     <span>把模考裝成 App，離線也能刷</span>
-    <span><button id="install-btn">安裝</button><button id="install-x" aria-label="關閉">✕</button></span>
+    <span><button id="install-btn">安裝</button><button id="install-x" aria-label="關閉">✕</button><!-- speak-tw-ok --></span>
   </div>
   <main id="view"></main>
   <footer class="site-footer">
