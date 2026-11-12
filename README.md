@@ -146,3 +146,7 @@ tools/extract.sh '<官方PDF網址>' out.txt            # 抽試題文字(答案
 | `worker/` | Cloudflare Worker:同步 + 推播 + cron |
 | `tools/` | 加題/加觀念卡 CLI、抽 PDF 腳本、來源清單 |
 | `AGENTS.md` `CLAUDE.md` `.claude/skills/` | 給 AI 代理的擴充指南與 skill |
+
+## 考後感謝卡（預設關閉）
+
+考試當天 17:00 之後到考後第 14 天，累計作答 20 題以上的使用者會看到一張只出現一次的感謝卡（請喝咖啡、加入 LINE 社群、不用了）。開關是 `app.js` 頂部的 `POST_EXAM_THANKS_ENABLED`，預設 `false`。網址加 `?thanks=preview` 可以強制預覽。顯示條件是 `core.js` 的 `shouldShowPostExamThanks`，有單元測試。目前沒有計數：站上的計數端點只認站名，分不出卡片的四種事件。

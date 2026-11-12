@@ -1,4 +1,6 @@
-import { nextBox, isMastered, scoreExam, progressStats, wrongQuestionIds, toMarkdown, reviewPriority, guessLevel, nextExam, MASTER_BOX } from './core.js';
+import { nextBox, isMastered, scoreExam, progressStats, wrongQuestionIds, toMarkdown, reviewPriority, guessLevel, nextExam, latestExam, shouldShowPostExamThanks, MASTER_BOX } from './core.js';
+// 考後感謝卡的開關。預設關著;文案作者看過才打開。網址加 ?thanks=preview 可以強制預覽。
+const POST_EXAM_THANKS_ENABLED = false;
 
 const STORE_KEY = 'ipas_quiz_progress';
 // 部署 Cloudflare Worker 後填入，例如 'https://ipas-quiz-sync.你的帳號.workers.dev'。留空=只用本機。
@@ -99,6 +101,45 @@ function examTarget() {
   if (set) return { date: set, level: null };
   if (!EXAMINFO) return null;
   return nextExam(EXAMINFO.exams, today(), guessLevel(store.q || {}));
+}
+const localDateTime = () => {
+  const d = new Date();
+  return `${ymd(d)}T${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+};
+function postExamThanksState() {
+  const preview = new URLSearchParams(location.search).get('thanks') === 'preview';
+  if (!preview && !POST_EXAM_THANKS_ENABLED) return null;
+
+  const nowLocal = localDateTime();
+  const todayStr = nowLocal.slice(0, 10);
+  const level = guessLevel(store.q || {});
+  const date = (store.settings && store.settings.examDate)
+    || latestExam(EXAMINFO && EXAMINFO.exams, todayStr, level)?.date
+    || (preview && (examTarget()?.date || todayStr));
+  if (!date) return null;
+
+  const dismissKey = `ipas_post_exam_thanks_${preview ? 'preview_' : ''}${date}`;
+  const dismissed = localStorage.getItem(dismissKey) === '1';
+  const visible = shouldShowPostExamThanks({
+    examDate: date,
+    nowLocal,
+    totalAttempts: Object.values(store.q || {}).reduce((sum, p) => sum + (Number.isFinite(p && p.attempts) ? Math.max(0, p.attempts) : 0), 0),
+    dismissed,
+    enabled: POST_EXAM_THANKS_ENABLED,
+    preview,
+  });
+  return visible ? { date, dismissKey } : null;
+}
+function postExamThanksCard() {
+  return `<section id="post-exam-thanks" class="card thanks-card" aria-labelledby="thanks-title">
+    <h2 id="thanks-title">考完了，辛苦了</h2>
+    <p>這個站是我一個人加 AI 做的，沒有廣告，也不收費。它有幫到你的話，可以請我喝杯咖啡。之後有新題或新的證照題庫，會先在 LINE 社群講。</p>
+    <div class="thanks-actions">
+      <a class="thanks-primary" data-thanks-dismiss href="https://buymeacoffee.com/yazelin" target="_blank" rel="noopener noreferrer">請喝咖啡</a>
+      <a class="thanks-secondary" data-thanks-dismiss href="https://line.me/ti/g2/xshYqZH3DLsqO8XNipmG3abL_KM6DORU7da5Lw?utm_source=invitation&amp;utm_medium=link_copy&amp;utm_campaign=ipas-post-exam" target="_blank" rel="noopener noreferrer">加入 LINE 社群</a>
+      <button class="thanks-secondary" data-thanks-dismiss type="button" aria-label="不用了，關閉考後感謝卡">不用了</button>
+    </div>
+  </section>`;
 }
 function daysUntilExam() {
   const t = examTarget(); if (!t) return null;
@@ -332,7 +373,9 @@ function home() {
       <h3>${esc(cc.title)}</h3>
       <p>${esc(cc.body)}</p>
     </section>` : '';
-  view.innerHTML = `${dailyStrip}${challengeCard}${conceptCard}
+  const thanksState = postExamThanksState();
+  const thanksCard = thanksState ? postExamThanksCard() : '';
+  view.innerHTML = `${thanksCard}${dailyStrip}${challengeCard}${conceptCard}
     <section class="card">
       <h2>練習模式</h2>
       <p class="muted">即時看答案與解析。勾選要練的範圍，預設全選。</p>
@@ -361,6 +404,15 @@ function home() {
       <button class="primary" id="pr-start">開始練習</button>
       <button class="primary alt" id="pr-images">只練看圖題（${DATA.questions.filter((q) => q.image).length} 題,全中級）</button>
     </section>`;
+  if (thanksState) {
+    const card = $('#post-exam-thanks');
+    card.querySelectorAll('[data-thanks-dismiss]').forEach((action) => {
+      action.addEventListener('click', () => {
+        localStorage.setItem(thanksState.dismissKey, '1');
+        card.remove();
+      });
+    });
+  }
   const selectedKeys = () => new Set([...view.querySelectorAll('.rng:checked')].map((c) => c.value));
   const kw = () => $('#pr-kw').value.trim().toLowerCase();
   const matchKw = (q) => {
