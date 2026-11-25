@@ -1,6 +1,6 @@
 // node core.test.mjs  — 邏輯壞掉就會 throw。
 import assert from 'node:assert';
-import { nextBox, isMastered, scoreExam, progressStats, wrongQuestionIds, toMarkdown, reviewPriority, guessLevel, nextExam, latestExam, shouldShowPostExamThanks } from './core.js';
+import { nextBox, isMastered, scoreExam, progressStats, wrongQuestionIds, toMarkdown, reviewPriority, guessLevel, nextExam, latestExam, shouldShowPostExamThanks, awaitingResults } from './core.js';
 
 // 出題優先序:錯題(0) < 沒做過(1) < 做過未掌握(2) < 已掌握(3)
 assert.equal(reviewPriority({ box: 1, attempts: 2, wrong: 1 }), 0);
@@ -82,6 +82,16 @@ const POST_EXAMS = { 初級: ['2026-08-15', '2026-11-07'], 中級: ['2026-08-22'
 assert.deepEqual(latestExam(POST_EXAMS, '2026-08-22', '初級'), { level: '初級', date: '2026-08-15' });
 assert.deepEqual(latestExam(POST_EXAMS, '2026-08-22'), { level: '中級', date: '2026-08-22' });
 assert.equal(latestExam(POST_EXAMS, '2026-08-14'), null);
+
+const AFTER = { '2026-08-15': { score: '2026-09-01', cert: '2026-10-20' }, '2026-11-07': { score: '2026-11-25', cert: '2027-01-15' }, '2026-11-14': { score: '2026-11-25', cert: '2027-01-15' } };
+assert.deepEqual(awaitingResults(EX, AFTER, '2026-11-25').map((r) => r.date), ['2026-11-07', '2026-11-14'], '考完的兩場都在等證書');
+assert.deepEqual(awaitingResults(EX, AFTER, '2026-11-10').map((r) => r.date), ['2026-08-15', '2026-11-07'], '還沒考的 11/14 不列');
+assert.deepEqual(awaitingResults(EX, AFTER, '2026-11-25')[0], { level: '初級', date: '2026-11-07', score: '2026-11-25', cert: '2027-01-15' });
+assert.deepEqual(awaitingResults(EX, AFTER, '2026-11-20').map((r) => r.date), ['2026-08-15', '2026-11-07', '2026-11-14'], '8/15 那場寄發日 10/20 起算第 31 天還列');
+assert.deepEqual(awaitingResults(EX, AFTER, '2026-11-21').map((r) => r.date), ['2026-11-07', '2026-11-14'], '第 32 天不列');
+assert.deepEqual(awaitingResults(EX, AFTER, '2027-02-15').map((r) => r.date), ['2026-11-07', '2026-11-14'], '寄發日後第 31 天還列');
+assert.deepEqual(awaitingResults(EX, AFTER, '2027-02-16'), [], '第 32 天不列');
+assert.deepEqual(awaitingResults(EX, {}, '2026-11-25'), [], '沒有日程資料不列');
 
 const thanksConditions = { examDate: '2026-08-15', totalAttempts: 20, dismissed: false, enabled: true };
 assert.equal(shouldShowPostExamThanks({ ...thanksConditions, nowLocal: '2026-08-14T18:00' }), false, '考前不顯示');

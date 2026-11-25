@@ -113,7 +113,7 @@ CLI 會擋掉:選項不是 3 或 4 個、answer 超出選項範圍、缺必填�
 | `node tools/add-questions.mjs <f.json> [--dry-run]` | 批次加題(驗證+配id+去重) |
 | `node tools/add-concepts.mjs <f.json> [--dry-run]` | 批次加觀念卡(驗證+去重) |
 | `tools/extract.sh '<pdf>' out.txt` | 官方試題 PDF 抽文字 |
-| `node tools/check-resources.mjs [--write]` | 比對官方資源頁 PDF 快照,有新試題/指引就產 issue 內容(GitHub Actions 每日跑) |
+| `node tools/check-resources.mjs [--write]` | 比對官方學習資源頁(試題/指引)與考試資訊頁(簡章)的 PDF 快照,有變動就產 issue 內容(GitHub Actions 每日跑);新簡章要把日期抄進 `exam-dates.json` 的 `exams` / `after` / `brochure` |
 | `node tools/extract-exam.mjs <pdf> --level --round --subject -o new.json` | 官方試題 PDF 抽成題目骨架(答案雙解析器交叉驗證 + 濾頁首頁尾) |
 | `node tools/check-questions.mjs` | 題庫健康檢查(圖/檔名慣例/附圖漏掛/結構/標點/**PDF 頁首頁尾殘留**),加題後跑 |
 | `/add-questions`(skill) | 引導加題流程 |

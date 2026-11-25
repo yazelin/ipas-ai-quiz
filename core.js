@@ -134,6 +134,25 @@ export function latestExam(exams, todayStr, level = null) {
   return best;
 }
 
+// 已經考完、還在等成績或證書的場次。after = { '<考試日>': { score: 成績公告日, cert: 證書開始寄發日 } }。
+// 證書是「cert 起陸續寄出」,寄發日過後再多留 31 天,等證書的人還找得到這行。
+export function awaitingResults(exams, after, todayStr) {
+  const out = [];
+  for (const [level, dates] of Object.entries(exams || {})) {
+    for (const date of dates || []) {
+      const a = after && after[date];
+      if (!a || date > todayStr) continue;
+      if (a.cert) {
+        const until = new Date(`${a.cert}T00:00:00Z`);
+        until.setUTCDate(until.getUTCDate() + 31);
+        if (todayStr > until.toISOString().slice(0, 10)) continue;
+      }
+      out.push({ level, date, score: a.score || null, cert: a.cert || null });
+    }
+  }
+  return out.sort((x, y) => (x.date < y.date ? -1 : x.date > y.date ? 1 : 0));
+}
+
 // 考後感謝卡的純條件判斷。nowLocal 使用瀏覽器當地時間 YYYY-MM-DDTHH:mm。
 export function shouldShowPostExamThanks({ examDate, nowLocal, totalAttempts, dismissed, enabled, preview = false }) {
   if (preview) return true;
