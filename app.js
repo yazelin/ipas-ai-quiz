@@ -1,4 +1,4 @@
-import { nextBox, isMastered, scoreExam, progressStats, wrongQuestionIds, toMarkdown, reviewPriority, guessLevel, nextExam, latestExam, shouldShowPostExamThanks, MASTER_BOX } from './core.js';
+import { nextBox, isMastered, scoreExam, progressStats, wrongQuestionIds, toMarkdown, reviewPriority, guessLevel, nextExam, latestExam, shouldShowPostExamThanks, awaitingResults, MASTER_BOX } from './core.js';
 // 考後感謝卡的開關。預設關著;文案作者看過才打開。網址加 ?thanks=preview 可以強制預覽。
 const POST_EXAM_THANKS_ENABLED = true;
 
@@ -142,12 +142,24 @@ function postExamThanksState() {
     enabled: POST_EXAM_THANKS_ENABLED,
     preview,
   });
-  return visible ? { date, dismissKey } : null;
+  const a = EXAMINFO && EXAMINFO.after && EXAMINFO.after[date];
+  return visible ? { date, dismissKey, result: a ? { score: a.score, cert: a.cert } : null } : null;
 }
-function postExamThanksCard() {
+// 成績與證書日期:抄自官方簡章(exam-dates.json 的 after),官方註明以網站最新公告為準,所以一律附簡章連結。
+const slashDate = (d) => d.replace(/^(\d{4})-0?(\d+)-0?(\d+)$/, '$1/$2/$3');
+const brochureLink = () => EXAMINFO && EXAMINFO.brochure
+  ? `<a href="${esc(EXAMINFO.brochure)}" target="_blank" rel="noopener">官方簡章 ↗</a>` : '';
+function resultLine(r) {
+  const parts = [];
+  if (r.score) parts.push(`成績 ${slashDate(r.score)} ${r.score > today() ? '公告' : '已公告'}`);
+  if (r.cert) parts.push(`證書 ${slashDate(r.cert)} 起陸續寄出`);
+  return parts.join('，');
+}
+function postExamThanksCard(state) {
   return `<section id="post-exam-thanks" class="card thanks-card" aria-labelledby="thanks-title">
     <h2 id="thanks-title">考完了，辛苦了</h2>
     <p>這個站是我一個人加 AI 做的，沒有廣告，也不收費。它有幫到你的話，可以請我喝杯咖啡。之後有新題或新的證照題庫，會先在 LINE 社群講。</p>
+    ${state && state.result ? `<p class="thanks-result">${resultLine(state.result)}。查成績要到 iPAS 網站登入；還沒收到證書前，可以先在官網列印「授證資格臨時證明」。${brochureLink()}</p>` : ''}
     <div class="thanks-actions">
       <a class="thanks-primary" data-thanks-dismiss data-thanks-kind="coffee" href="https://buymeacoffee.com/yazelin" target="_blank" rel="noopener noreferrer">請喝咖啡</a>
       <a class="thanks-secondary" data-thanks-dismiss data-thanks-kind="line" href="https://line.me/ti/g2/xshYqZH3DLsqO8XNipmG3abL_KM6DORU7da5Lw?utm_source=invitation&amp;utm_medium=link_copy&amp;utm_campaign=ipas-post-exam" target="_blank" rel="noopener noreferrer">加入 LINE 社群</a>
@@ -389,7 +401,7 @@ function home() {
       <p>${esc(cc.body)}</p>
     </section>` : '';
   const thanksState = postExamThanksState();
-  const thanksCard = thanksState ? postExamThanksCard() : '';
+  const thanksCard = thanksState ? postExamThanksCard(thanksState) : '';
   view.innerHTML = `${thanksCard}${dailyStrip}${challengeCard}${conceptCard}
     <section class="card">
       <h2>練習模式</h2>
@@ -760,11 +772,15 @@ function examInfoHtml() {
   const picks = Object.entries(EXAMINFO.exams || {})
     .map(([lv, arr]) => { const d = next(arr); return d ? `<button class="exam-pick" data-d="${d}">下次${esc(lv)} ${d}</button>` : ''; })
     .join('');
+  const waiting = awaitingResults(EXAMINFO.exams, EXAMINFO.after, t);
   return `<div class="guide" style="white-space:normal">
     ${EXAMINFO.pass ? `<p style="margin:0 0 6px">${esc(EXAMINFO.pass)}</p>` : ''}
     ${picks ? `<div style="margin-bottom:6px">一鍵設為倒數日期(初級/中級日期不同,自己選):<br>${picks}</div>`
       : '<div style="margin-bottom:6px">官方尚未公布下一場考試日期，公布後首頁倒數會自動對上。</div>'}
+    ${waiting.length ? `<div style="margin-bottom:6px">${waiting.map((r) => `${esc(slashDate(r.date))} ${esc(r.level)}：${resultLine(r)}`).join('<br>')}<br>
+      <span class="muted">查成績要到 iPAS 網站登入；還沒收到證書前，可以先在官網列印「授證資格臨時證明」。日期抄自官方簡章，以官網最新公告為準。</span></div>` : ''}
     <a href="https://ipd.nat.gov.tw/ipas/certification/AIAP/exam-info" target="_blank" rel="noopener">官方考試資訊 ↗</a>
+    ${brochureLink()}
   </div>`;
 }
 

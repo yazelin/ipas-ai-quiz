@@ -1,5 +1,5 @@
 {
-  "updated": "2026-11-24T11:03:41.506Z",
+  "updated": "2026-11-25T11:12:30.702Z",
   "pdfs": [
     "https://www.ipas.org.tw/api/proxy/uploads/certification_resource/bf93f438f7be48d295c1b40a34d79f3d/114年第二梯次中級AI應用規劃師第一科人工智慧技術應用與規劃(當次試題公告114_20251226000616.pdf",
     "https://www.ipas.org.tw/api/proxy/uploads/certification_resource/bf93f438f7be48d295c1b40a34d79f3d/114年第二梯次中級AI應用規劃師第三科機器學習技術與應用(當次試題公告114_20251226000650.pdf",
@@ -24,5 +24,11 @@
     "https://www.ipas.org.tw/api/proxy/uploads/certification_resource/bf93f438f7be48d295c1b40a34d79f3d/AI應用規劃師(初級)-學習指引-科目1_人工智慧基礎概論1141203_20251222172144.pdf",
     "https://www.ipas.org.tw/api/proxy/uploads/certification_resource/bf93f438f7be48d295c1b40a34d79f3d/AI應用規劃師(初級)-學習指引-科目2_生成式AI應用與規劃114123_20251222172159.pdf",
     "https://www.ipas.org.tw/api/proxy/uploads/certification_resource/bf93f438f7be48d295c1b40a34d79f3d/AI應用規劃師(初級)學習指引勘誤表11404_20251222101819.pdf"
+  ],
+  "examInfoPdfs": [
+    "https://www.ipas.org.tw/api/proxy/uploads/certification/AIAP/115年度AI應用規劃師能力鑑定簡章(初、中級)_0410_20260410115646_20260901165208.pdf",
+    "https://www.ipas.org.tw/api/proxy/uploads/certification_attachment/8039a24c849c4fb4a6dd7f942576d4f8/115年度AI應用規劃師能力鑑定(中級科目抵免辦法)_11501版_20260101234950.pdf",
+    "https://www.ipas.org.tw/api/proxy/uploads/certification_attachment/8039a24c849c4fb4a6dd7f942576d4f8/115年度AI應用規劃師能力鑑定簡章(初、中級)_0410_20260410144503.pdf",
+    "https://www.ipas.org.tw/api/proxy/uploads/certification_attachment/8039a24c849c4fb4a6dd7f942576d4f8/AI應用規劃師能力鑑定_評鑑內容範圍參考_11506_20260602161501.pdf"
   ]
 }
