@@ -6,6 +6,14 @@ const STORE_KEY = 'ipas_quiz_progress';
 // 部署 Cloudflare Worker 後填入，例如 'https://ipas-quiz-sync.你的帳號.workers.dev'。留空=只用本機。
 const SYNC_URL = 'https://ipas-quiz-sync.yazelinj303.workers.dev';
 const VAPID_PUBLIC = 'BNn4Lwq818aHx8cb0LrcQ6IpRgHb9B3P_BOqusct-uFyJPQ4hlDrIOirliHoNdbbg5tg8zWfzBg5SZ0yBhRq7zA';
+// 考後感謝卡計數:用 k-rider 的 /hit 計四個數字,站名 ipas-ai-quiz-thanks-seen / -coffee / -line / -close。
+// 只在正式站記,預覽與本機不記;計數失敗不影響頁面。
+const countThanks = (what) => {
+  try {
+    if (location.hostname !== 'yazelin.github.io' || !navigator.sendBeacon) return;
+    navigator.sendBeacon(`https://k-rider-api.yazelinj303.workers.dev/hit?s=ipas-ai-quiz-thanks-${what}`);
+  } catch (e) { /* 計數失敗不影響頁面 */ }
+};
 const $ = (sel) => document.querySelector(sel);
 const view = $('#view');
 
@@ -135,9 +143,9 @@ function postExamThanksCard() {
     <h2 id="thanks-title">考完了，辛苦了</h2>
     <p>這個站是我一個人加 AI 做的，沒有廣告，也不收費。它有幫到你的話，可以請我喝杯咖啡。之後有新題或新的證照題庫，會先在 LINE 社群講。</p>
     <div class="thanks-actions">
-      <a class="thanks-primary" data-thanks-dismiss href="https://buymeacoffee.com/yazelin" target="_blank" rel="noopener noreferrer">請喝咖啡</a>
-      <a class="thanks-secondary" data-thanks-dismiss href="https://line.me/ti/g2/xshYqZH3DLsqO8XNipmG3abL_KM6DORU7da5Lw?utm_source=invitation&amp;utm_medium=link_copy&amp;utm_campaign=ipas-post-exam" target="_blank" rel="noopener noreferrer">加入 LINE 社群</a>
-      <button class="thanks-secondary" data-thanks-dismiss type="button" aria-label="不用了，關閉考後感謝卡">不用了</button>
+      <a class="thanks-primary" data-thanks-dismiss data-thanks-kind="coffee" href="https://buymeacoffee.com/yazelin" target="_blank" rel="noopener noreferrer">請喝咖啡</a>
+      <a class="thanks-secondary" data-thanks-dismiss data-thanks-kind="line" href="https://line.me/ti/g2/xshYqZH3DLsqO8XNipmG3abL_KM6DORU7da5Lw?utm_source=invitation&amp;utm_medium=link_copy&amp;utm_campaign=ipas-post-exam" target="_blank" rel="noopener noreferrer">加入 LINE 社群</a>
+      <button class="thanks-secondary" data-thanks-dismiss data-thanks-kind="close" type="button" aria-label="不用了，關閉考後感謝卡">不用了</button>
     </div>
   </section>`;
 }
@@ -406,8 +414,15 @@ function home() {
     </section>`;
   if (thanksState) {
     const card = $('#post-exam-thanks');
+    // 「看到」每個瀏覽分頁、每個考試日只記一次,不然每次切回首頁都會再算
+    const seenKey = `ipas_thanks_seen_${thanksState.date}`;
+    if (!sessionStorage.getItem(seenKey)) {
+      sessionStorage.setItem(seenKey, '1');
+      countThanks('seen');
+    }
     card.querySelectorAll('[data-thanks-dismiss]').forEach((action) => {
       action.addEventListener('click', () => {
+        countThanks(action.dataset.thanksKind);
         localStorage.setItem(thanksState.dismissKey, '1');
         card.remove();
       });
