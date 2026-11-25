@@ -104,11 +104,17 @@ function liveStreak() {
 // 看他練過的題是初級還是中級(id 裡的 -b-/-m-),挑那一級還沒到的最近一場。
 // 為什麼要自動:實測 2,137 個使用者只有 131 個(6%)走進設定頁設過日期,
 // 而考前那兩天湧進 267 個人,設日期的只多了 5 個。功能一直都在,只是沒人找得到。
+// 自己設的日期過了就不再用它(11 月有 144 人設了 11/07,考完會一直看到「考試已過」),改回自動判。
 function examTarget() {
   const set = store.settings && store.settings.examDate;
-  if (set) return { date: set, level: null };
+  if (set && set >= today()) return { date: set, level: null };
   if (!EXAMINFO) return null;
   return nextExam(EXAMINFO.exams, today(), guessLevel(store.q || {}));
+}
+// 日期表載到了、卻找不到下一場 = 官方還沒公布下一梯次。回傳要顯示的級別('' = 不分級)。
+function examPendingLevel() {
+  if (!EXAMINFO || examTarget()) return null;
+  return guessLevel(store.q || {}) || '';
 }
 const localDateTime = () => {
   const d = new Date();
@@ -348,7 +354,7 @@ function home() {
     `<div class="range-group"><div class="range-lv">${esc(lv)}</div>${gs.map((g) =>
       `<label class="range-item"><input type="checkbox" class="rng" value="${esc(g.key)}" checked><span>${esc(g.key)}</span><b>${g.count}</b></label>`).join('')}</div>`).join('');
   const g = dailyGoal(), dc = todayCount(), strk = liveStreak(), du = daysUntilExam();
-  const et = examTarget();
+  const et = examTarget(), pendLv = examPendingLevel();
   const goalHit = dc >= g;
   // 開啟提醒的入口本來只在設定頁最底下,2,137 個人裡只有 17 個找到它。
   // 放在倒數旁邊:看到「還有幾天」的那一刻,才是他真的想要被提醒的時候。
@@ -362,7 +368,8 @@ function home() {
       <div class="daily">
         <div><b class="${goalHit ? 'hit' : ''}">${dc}/${g}</b><span>今日題數${goalHit ? ' ✓' : ''}</span></div>
         <div><b>${strk}</b><span>連續天數</span></div>
-        ${du != null ? `<div><b>${du < 0 ? '—' : du}</b><span>${du < 0 ? '考試已過' : `距${et && et.level ? esc(et.level) : ''}考試（天）`}</span></div>` : ''}
+        ${du != null ? `<div><b>${du < 0 ? '—' : du}</b><span>${du < 0 ? '考試已過' : `距${et && et.level ? esc(et.level) : ''}考試（天）`}</span></div>`
+          : pendLv != null ? `<div><b class="pending">尚未公布</b><span>下次${esc(pendLv)}考試日期</span></div>` : ''}
       </div>
       ${remindCta}
       <button id="share">分享進度</button>
@@ -755,7 +762,8 @@ function examInfoHtml() {
     .join('');
   return `<div class="guide" style="white-space:normal">
     ${EXAMINFO.pass ? `<p style="margin:0 0 6px">${esc(EXAMINFO.pass)}</p>` : ''}
-    ${picks ? `<div style="margin-bottom:6px">一鍵設為倒數日期(初級/中級日期不同,自己選):<br>${picks}</div>` : ''}
+    ${picks ? `<div style="margin-bottom:6px">一鍵設為倒數日期(初級/中級日期不同,自己選):<br>${picks}</div>`
+      : '<div style="margin-bottom:6px">官方尚未公布下一場考試日期，公布後首頁倒數會自動對上。</div>'}
     <a href="https://ipd.nat.gov.tw/ipas/certification/AIAP/exam-info" target="_blank" rel="noopener">官方考試資訊 ↗</a>
   </div>`;
 }
